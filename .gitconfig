@@ -8,7 +8,10 @@
 
 
     lol = !"git lg2"
+    lol2 = !"git lg1"
+
     lola = !"git lol --all"
+    lola2 = !"git lol2 --all"
 
     #diff
     dc = diff --cached
