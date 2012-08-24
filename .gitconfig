@@ -7,7 +7,7 @@
     lg2 = log --graph --decorate --pretty=oneline --abbrev-commit
 
 
-    lol = !"git lg1"
+    lol = !"git lg2"
     lola = !"git lol --all"
 
     #diff
@@ -58,7 +58,7 @@
     remotebranch = bold yellow reverse
     
 [apply]
-        whitespace = strip
+    whitespace = strip
 
 [diff]
         color = auto

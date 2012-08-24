@@ -74,6 +74,7 @@ alias co='git checkout'
 alias br='git branch'
 alias bra='git branch --all'
 alias be='bundle exec'
+alias b='bundle'
 alias ber='bundle exec rspec'
 
 # Show RVM status in prompt
