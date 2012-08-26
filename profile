@@ -74,6 +74,7 @@ alias co='git checkout'
 alias br='git branch'
 alias bra='git branch --all'
 alias be='bundle exec'
+alias beg='bundle exec guard start'
 alias b='bundle'
 alias ber='bundle exec rspec'
 
@@ -93,4 +94,4 @@ if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
 
-cd ~/DEV
+cd /WORKING/WEBDEV/
