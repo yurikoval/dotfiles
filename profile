@@ -74,13 +74,14 @@ alias co='git checkout'
 alias br='git branch'
 alias bra='git branch --all'
 alias be='bundle exec'
+alias beg='bundle exec guard start'
 alias b='bundle'
 alias ber='bundle exec rspec'
 
 # Show RVM status in prompt
 # export PROMPT_COMMAND='echo -n ">>> "; echo -n $GEM_HOME | sed -e "s/.*\///" | tr -d "\012" ; git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/ (\1)/" | tr -d "\012" ; echo " <<<"'
 
-. ~/.cli_separators
+#. ~/.cli_separators
 
 # Add texbin to the PATH
 export PATH=$PATH:/usr/texbin
@@ -93,4 +94,4 @@ if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
 
-cd ~/DEV
+cd /WORKING/WEBDEV/

@@ -1,6 +1,6 @@
 [user]
 	name = Yuri Kovalov
-	email = ykovalov@mediweb.jp
+	email = yuri@yurikoval.com
 [alias]
 
     lg1 = log --graph --format=format:'%C(red)%h%C(reset)  %C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(bold cyan)%an%C(reset) %C(green)(%ar)%C(reset)' --abbrev-commit --date=relative
@@ -81,4 +81,8 @@
 	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
 [log]
-	decorate = full
+  decorate = full
+  pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
+[github]
+  user = yurikoval
+  token =
