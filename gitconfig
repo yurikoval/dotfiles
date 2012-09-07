@@ -39,6 +39,7 @@
     st = status
     praise = blame
     bl = gui blame
+    ca = commit --amend
 [color]
     ui = auto
     branch = always
