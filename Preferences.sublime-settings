@@ -5,6 +5,5 @@
 	"tab_size": 2,
 	"translate_tabs_to_spaces": true,
   "ensure_newline_at_eof_on_save": true,
-  "highlight_line": true,
-  "save_on_focus_lost": true
+  "highlight_line": true
 }
