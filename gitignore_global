@@ -4,3 +4,4 @@
 .*.swp
 .rvmrc
 database.yml
+coverage

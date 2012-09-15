@@ -40,6 +40,7 @@
     praise = blame
     bl = gui blame
     ri = rebase --interactive
+    ca = commit --amend
 [color]
     ui = auto
     branch = always
