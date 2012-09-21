@@ -40,6 +40,9 @@
     praise = blame
     bl = gui blame
     ca = commit --amend
+
+    ss = diff --stat
+    m = merge --no-ff --log
 [color]
     ui = auto
     branch = always
