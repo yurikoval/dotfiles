@@ -1,0 +1,5 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =3
+let g:netrw_dirhist_1='/Users/yuri/.rvm/gems/ruby-1.9.3-p194/gems/kaminari-0.13.0'
+let g:netrw_dirhist_2='/Users/yuri/.rvm/gems/ruby-1.9.3-p194/gems/rubycas-client-2.3.9'
+let g:netrw_dirhist_3='/Users/yuri/.rvm/gems/ruby-1.9.3-p194/gems/kaminari-0.13.0'

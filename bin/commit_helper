@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Commit helper made to work with git flow
+#
+
+echo -n "Commit message: "
+read message
+
+ticket=`git status | perl -ne 'print  if s/.*feature\/(\d+).*/\1/'`
+
+if [ $ticket ] ; then
+  echo -n "refs #${ticket} [override]: "
+  read override
+  if [ $override ] ; then
+    ticket=$override
+  fi
+else
+  echo -m "refs #"
+  read ticket
+fi
+
+git commit -m "${message}\nrefs #${ticket}."
