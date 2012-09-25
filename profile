@@ -14,7 +14,7 @@ PATH=$PATH:$HOME/.rvm/bin
 #rvm use ruby-1.8.7-p330
 
 # Add user path
-export PATH=$PATH:~/bin:~/Documents/bin
+export PATH=$PATH:~/bin:~/Documents/bin:~/dotfiles/bin
 
 export LANG=en_US.UTF-8
 
@@ -77,6 +77,7 @@ alias be='bundle exec'
 alias beg='bundle exec guard start'
 alias b='bundle'
 alias ber='bundle exec rspec'
+alias gc='commit_helper'
 
 # Show RVM status in prompt
 # export PROMPT_COMMAND='echo -n ">>> "; echo -n $GEM_HOME | sed -e "s/.*\///" | tr -d "\012" ; git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/ (\1)/" | tr -d "\012" ; echo " <<<"'
