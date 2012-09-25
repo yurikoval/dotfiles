@@ -44,6 +44,8 @@
 
     ss = diff --stat
     m = merge --no-ff --log
+    cm = commit -m
+    d = diff
 [color]
     ui = auto
     branch = always
