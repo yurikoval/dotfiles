@@ -5,3 +5,5 @@
 .rvmrc
 database.yml
 coverage
+.sass-cache
+zeus.json

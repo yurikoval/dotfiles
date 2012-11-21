@@ -78,6 +78,8 @@ alias beg='bundle exec guard start'
 alias b='bundle'
 alias ber='bundle exec rspec'
 alias gc='commit_helper'
+alias z='zeus'
+alias zr='zeus rspec'
 
 # Show RVM status in prompt
 # export PROMPT_COMMAND='echo -n ">>> "; echo -n $GEM_HOME | sed -e "s/.*\///" | tr -d "\012" ; git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/ (\1)/" | tr -d "\012" ; echo " <<<"'
