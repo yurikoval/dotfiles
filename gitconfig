@@ -44,6 +44,9 @@
 
     ss = diff --stat
     m = merge --no-ff --log
+    cm = commit -m
+    d = diff
+	alias = config --get-regexp 'alias.*'
 [color]
     ui = auto
     branch = always
@@ -92,3 +95,5 @@
 [github]
   user = yurikoval
   token =
+[branch]
+  autosetuprebase = always

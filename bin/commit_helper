@@ -1,0 +1,23 @@
+#!/usr/local/bin/bash
+#
+# Commit helper made to work with git flow
+# Requires bash 4.2
+#
+
+read -p "Commit message: " message
+
+if [ -z $message ] ; then
+  echo "No commit message. Exiting."
+  exit
+fi
+
+ticket=`git status | perl -ne 'print  if s/.*feature\/(\d+).*/\1/'`
+
+read -e -p "refs # " -i $ticket ticket
+
+refs=''
+if [ $ticket ] ; then
+  refs="\nrefs #${ticket}."
+fi
+
+git commit -m "$(echo -e "$message$refs")"

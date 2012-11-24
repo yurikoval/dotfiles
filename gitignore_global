@@ -9,4 +9,5 @@ coverage
 *.db
 *.sqlite
 .gitkeep
+.sass-cache
 zeus.json
