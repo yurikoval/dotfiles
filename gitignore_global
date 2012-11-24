@@ -3,5 +3,10 @@
 *~
 .*.swp
 .rvmrc
+.gitignore
 database.yml
 coverage
+*.db
+*.sqlite
+.gitkeep
+zeus.json

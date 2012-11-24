@@ -7,5 +7,9 @@
 	],
 	"preview_on_click": false,
 	"tab_size": 2,
-	"translate_tabs_to_spaces": true
+	"translate_tabs_to_spaces": true,
+  "file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", "*.class", "*.psd", "*.db", ".git*"],
+  "spell_check": false,
+  "caret_style": "phase",
+  "trim_trailing_white_space_on_save": false
 }
