@@ -49,7 +49,7 @@
 	alias = config --get-regexp 'alias.*'
 [color]
     ui = auto
-    branch = always
+    branch = auto
 [color "branch"]
     current = green bold reverse
     local = green
