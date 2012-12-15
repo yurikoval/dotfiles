@@ -8,6 +8,7 @@ database.yml
 coverage
 *.db
 *.sqlite
+*.sqlite3
 .gitkeep
 .sass-cache
 zeus.json
