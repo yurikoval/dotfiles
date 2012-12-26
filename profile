@@ -23,7 +23,7 @@ alias dus='du -Pscxm * | sort -nr'
 alias lah='ls -lah'
 
 #export VISUAL='~/bin/mate --wait'
-# export VISUAL='~/bin/subl --wait'
+export VISUAL='/bin/subl --wait'
 export EDITOR=/usr/bin/vim
 
 # bundle exec
