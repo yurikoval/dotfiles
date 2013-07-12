@@ -6,7 +6,7 @@ task :install do
   install_oh_my_zsh
   switch_to_zsh
   replace_all = false
-  files = Dir.entries('preferences/') - files_to_link.map{|a| a[:original]}
+  files = Dir.entries('preferences/') - files_to_link.map{|a| a[:original]} - ['.DS_Store']
   files = files.reject{|file| file =~ /^\.+$/ }.map{|file| "preferences/#{file}"}
   files << "oh-my-zsh/custom/plugins/rbates"
   files << "oh-my-zsh/custom/rbates.zsh-theme"
@@ -37,13 +37,17 @@ task :install do
       link_file(original, copy_to)
     end
   end
+
+  # link excluded files in files_to_link
+  files_to_link.each do |file|
+    system %Q{mkdir -p "$HOME/#{File.dirname(file[:link_to_dir])}"}
+    link_file("preferences/#{file[:original]}", "#{file[:link_to_dir]}/#{file[:original]}")
+  end
 end
 
 def files_to_link
   [
-    {original: 'Preferences.sublime-settings', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
-    {original: 'Default (OSX).sublime-keymap', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
-    {original: 'SublimeScheme.tmTheme', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
+    {original: 'Packages', link_to_dir: "Library/Application Support/Sublime Text 2"},
   ]
 end
 

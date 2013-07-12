@@ -1,0 +1,35 @@
+{
+	"auto_upgrade_last_run": null,
+	"installed_packages":
+	[
+		"Case Conversion",
+		"CoffeeComplete Plus (Autocompletion)",
+		"CoffeeScript",
+		"DashDoc",
+		"DetectSyntax",
+		"Dimmed Color Scheme",
+		"FileDiffs",
+		"Git",
+		"GitGutter",
+		"Haml",
+		"Handlebars",
+		"HTML2Haml",
+		"LESS",
+		"Markdown Preview",
+		"Marked.app Menu",
+		"ObjC2RubyMotion",
+		"Package Control",
+		"RailsCasts Colour Scheme",
+		"RSpec",
+		"RubyMotion Autocomplete",
+		"RubyMotionBuilder",
+		"RubyTest",
+		"Sass",
+		"SCSS",
+		"SideBarEnhancements",
+		"snake_case",
+		"TrailingSpaces",
+		"VintageEx",
+		"Whitespaces"
+	]
+}
