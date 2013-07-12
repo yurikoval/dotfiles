@@ -40,8 +40,10 @@ task :install do
 
   # link excluded files in files_to_link
   files_to_link.each do |file|
-    system %Q{mkdir -p "$HOME/#{File.dirname(file[:link_to_dir])}"}
-    link_file("preferences/#{file[:original]}", "#{file[:link_to_dir]}/#{file[:original]}")
+    unless File.exist? File.join(ENV['HOME'], "#{file[:link_to_dir]}/#{file[:original]}")
+      system %Q{mkdir -p "$HOME/#{File.dirname(file[:link_to_dir])}"}
+      link_file("preferences/#{file[:original]}", "#{file[:link_to_dir]}/#{file[:original]}")
+    end
   end
 end
 
