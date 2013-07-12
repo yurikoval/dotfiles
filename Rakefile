@@ -50,6 +50,7 @@ end
 def files_to_link
   [
     {original: 'Packages', link_to_dir: "Library/Application Support/Sublime Text 2"},
+    {original: 'com.googlecode.iterm2.plist', link_to_dir: "Library/Preferences"},
   ]
 end
 
