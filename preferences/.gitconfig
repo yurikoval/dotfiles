@@ -46,6 +46,7 @@
     m = merge --no-ff --log
     cm = commit -m
     d = diff
+  wd = diff --word-diff
 	alias = config --get-regexp 'alias.*'
 [color]
     ui = auto
@@ -97,3 +98,5 @@
   token =
 [branch]
   autosetuprebase = always
+[gc]
+	auto = 0

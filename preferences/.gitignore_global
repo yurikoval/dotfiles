@@ -13,3 +13,8 @@ coverage
 .sass-cache
 zeus.json
 dump.rdb
+ublic/uploads
+tmp/
+.bundle/
+log/
+bin/

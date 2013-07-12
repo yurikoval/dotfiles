@@ -23,7 +23,7 @@ alias dus='du -Pscxm * | sort -nr'
 alias lah='ls -lah'
 
 #export VISUAL='~/bin/mate --wait'
-export VISUAL='/bin/subl --wait'
+#export VISUAL='/bin/subl --wait'
 export EDITOR=/usr/bin/vim
 
 # bundle exec
@@ -81,6 +81,10 @@ alias gc='commit_helper'
 alias z='zeus'
 alias zr='zeus rspec'
 alias s='subl `pwd`'
+alias ra='rake'
+alias rmr='rake nibs:clean && rake resources'
+alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
+alias cal='DEVICE=ipad rake calabash:run'
 
 # Show RVM status in prompt
 # export PROMPT_COMMAND='echo -n ">>> "; echo -n $GEM_HOME | sed -e "s/.*\///" | tr -d "\012" ; git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/ (\1)/" | tr -d "\012" ; echo " <<<"'
@@ -91,11 +95,11 @@ alias s='subl `pwd`'
 export PATH=$PATH:/usr/texbin
 
 # Load RVM
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+#[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 # Enable bash completion
 if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
 
-cd /WORKING/WEBDEV/
+cd ~/DEV

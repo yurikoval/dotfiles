@@ -6,53 +6,64 @@ task :install do
   install_oh_my_zsh
   switch_to_zsh
   replace_all = false
-  files = Dir['*'] - %w[Rakefile README.rdoc LICENSE oh-my-zsh Preferences.sublime-settings]
+  files = Dir.entries('preferences/') - files_to_link.map{|a| a[:original]}
+  files = files.reject{|file| file =~ /^\.+$/ }.map{|file| "preferences/#{file}"}
   files << "oh-my-zsh/custom/plugins/rbates"
   files << "oh-my-zsh/custom/rbates.zsh-theme"
   files.each do |file|
-    system %Q{mkdir -p "$HOME/.#{File.dirname(file)}"} if file =~ /\//
-    if File.exist?(File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}"))
-      if File.identical? file, File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}")
-        puts "identical ~/.#{file.sub(/\.erb$/, '')}"
+    original = file
+    copy_to = file.sub(/^preferences\//, '')
+    system %Q{mkdir -p "$HOME/#{File.dirname(copy_to)}"} if copy_to =~ /\//
+    if File.exist?(File.join(ENV['HOME'], "#{copy_to.sub(/\.erb$/, '')}"))
+      if File.identical? copy_to, File.join(ENV['HOME'], "#{copy_to.sub(/\.erb$/, '')}")
+        puts "identical ~/#{copy_to.sub(/\.erb$/, '')}"
       elsif replace_all
-        replace_file(file)
+        replace_file(copy_to)
       else
-        print "overwrite ~/.#{file.sub(/\.erb$/, '')}? [ynaq] "
+        print "overwrite ~/#{copy_to.sub(/\.erb$/, '')}? [ynaq] "
         case $stdin.gets.chomp
         when 'a'
           replace_all = true
-          replace_file(file)
+          replace_file(copy_to)
         when 'y'
-          replace_file(file)
+          replace_file(copy_to)
         when 'q'
           exit
         else
-          puts "skipping ~/.#{file.sub(/\.erb$/, '')}"
+          puts "skipping ~/#{copy_to.sub(/\.erb$/, '')}"
         end
       end
     else
-      link_file(file)
+      link_file(original, copy_to)
     end
   end
 end
 
+def files_to_link
+  [
+    {original: 'Preferences.sublime-settings', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
+    {original: 'Default (OSX).sublime-keymap', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
+    {original: 'SublimeScheme.tmTheme', link_to_dir: "$HOME/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"},
+  ]
+end
+
 def replace_file(file)
-  system %Q{rm -rf "$HOME/.#{file.sub(/\.erb$/, '')}"}
+  system %Q{rm -rf "$HOME/#{file.sub(/\.erb$/, '')}"}
   link_file(file)
 end
 
-def link_file(file)
+def link_file(file, to = "")
   if file =~ /.erb$/
-    puts "generating ~/.#{file.sub(/\.erb$/, '')}"
-    File.open(File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}"), 'w') do |new_file|
+    puts "generating ~/#{file.sub(/\.erb$/, '')}"
+    File.open(File.join(ENV['HOME'], "#{file.sub(/\.erb$/, '')}"), 'w') do |new_file|
       new_file.write ERB.new(File.read(file)).result(binding)
     end
   elsif file =~ /zshrc$/ # copy zshrc instead of link
-    puts "copying ~/.#{file}"
-    system %Q{cp "$PWD/#{file}" "$HOME/.#{file}"}
+    puts "copying ~/#{file}"
+    system %Q{cp "$PWD/#{file}" "$HOME/#{to}"}
   else
-    puts "linking ~/.#{file}"
-    system %Q{ln -s "$PWD/#{file}" "$HOME/.#{file}"}
+    puts "linking ~/#{file} to $HOME/#{to}"
+    system %Q{ln -s "$PWD/#{file}" "$HOME/#{to}"}
   end
 end
 
