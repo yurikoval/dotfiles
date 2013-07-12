@@ -18,15 +18,15 @@ task :install do
       if File.identical? copy_to, File.join(ENV['HOME'], "#{copy_to.sub(/\.erb$/, '')}")
         puts "identical ~/#{copy_to.sub(/\.erb$/, '')}"
       elsif replace_all
-        replace_file(copy_to)
+        replace_file(original, copy_to)
       else
         print "overwrite ~/#{copy_to.sub(/\.erb$/, '')}? [ynaq] "
         case $stdin.gets.chomp
         when 'a'
           replace_all = true
-          replace_file(copy_to)
+          replace_file(original, copy_to)
         when 'y'
-          replace_file(copy_to)
+          replace_file(original, copy_to)
         when 'q'
           exit
         else
@@ -53,9 +53,9 @@ def files_to_link
   ]
 end
 
-def replace_file(file)
+def replace_file(file, to = "")
   system %Q{rm -rf "$HOME/#{file.sub(/\.erb$/, '')}"}
-  link_file(file)
+  link_file(file, to)
 end
 
 def link_file(file, to = "")
