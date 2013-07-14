@@ -1,5 +1,5 @@
 ZSH=$HOME/.oh-my-zsh
-ZSH_THEME="robbyrussell"
+ZSH_THEME="yurik"
 DISABLE_AUTO_UPDATE="true"
 DISABLE_LS_COLORS="true"
 
