@@ -100,5 +100,5 @@ export PATH=$PATH:/usr/texbin
 if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
-
-cd ~/DEV
+source ~/.rvm/scripts/rvm
+cd /WORKING/WEBDEV
