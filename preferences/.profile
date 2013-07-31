@@ -103,4 +103,5 @@ if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
 source ~/.rvm/scripts/rvm
-cd /WORKING/WEBDEV
+dev
+cowsay `fortune` | lolcat
