@@ -100,3 +100,5 @@
   autosetuprebase = always
 [gc]
 	auto = 0
+[push]
+	default = current
