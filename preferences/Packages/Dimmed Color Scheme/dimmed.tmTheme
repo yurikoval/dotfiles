@@ -2,7 +2,7 @@
 <plist version="1.0">
 <dict>
 	<key>comment</key>
-	<string>Dimmed</string>
+	<string>github.com&#x2f;uonick</string>
 	<key>name</key>
 	<string>Dimmed</string>
 	<key>settings</key>
@@ -717,5 +717,11 @@
 			</dict>
 		</dict>
 	</array>
+	<key>colorSpaceName</key>
+	<string>sRGB</string>
+	<key>semanticClass</key>
+	<string>theme.light.dimmed</string>
+	<key>author</key>
+	<string>uonick</string>
 </dict>
 </plist>

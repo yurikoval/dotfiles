@@ -84,6 +84,8 @@ alias ra='rake'
 alias rmr='rake nibs:clean && rake resources'
 alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
 alias cal='DEVICE=ipad rake calabash:run'
+alias fs='foreman start'
+alias dev='cd /WORKING/WEBDEV/; echo "Moved to dev."'
 
 # Show RVM status in prompt
 # export PROMPT_COMMAND='echo -n ">>> "; echo -n $GEM_HOME | sed -e "s/.*\///" | tr -d "\012" ; git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/ (\1)/" | tr -d "\012" ; echo " <<<"'
@@ -101,4 +103,5 @@ if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
 source ~/.rvm/scripts/rvm
-cd /WORKING/WEBDEV
+dev
+cowsay `fortune` | lolcat
