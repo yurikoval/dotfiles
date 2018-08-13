@@ -39,8 +39,9 @@
     st = status
     praise = blame
     bl = gui blame
-    ri = rebase --interactive
+    ri = rebase --interactive --autosquash
     ca = commit --amend
+    cf = commit --fixup
 
     ss = diff --stat
     m = merge --no-ff --log
