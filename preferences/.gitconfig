@@ -2,105 +2,77 @@
 	name = Yuri Kovalov
 	email = yuri@yurikoval.com
 [alias]
-    ws = log --since=10.days --oneline --graph --decorate --abbrev-commit --format=format:'%C(red)%h%C(reset) %C(green)(%ar)%C(reset) %C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(bold cyan)%an%C(reset)'
-    wsa = ws --all
-    lg1 = log --graph --format=format:'%C(red)%h%C(reset)  %C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(bold cyan)%an%C(reset) %C(green)(%ar)%C(reset)' --abbrev-commit --date=relative
-    lg2 = log --graph --decorate --pretty=oneline --abbrev-commit
+  ws = log --since=10.days --oneline --graph --decorate --abbrev-commit --format=format:'%C(red)%h%C(reset) %C(green)(%ar)%C(reset) %C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(bold cyan)%an%C(reset)'
+  wsa = !"git ws --all"
 
+  lg1 = log --graph --format=format:'%C(red)%h%C(reset)  %C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(bold cyan)%an%C(reset) %C(green)(%ar)%C(reset)' --abbrev-commit --date=relative
+  lg2 = log --graph --decorate --pretty=oneline --abbrev-commit
 
-    lol = !"git lg2"
-    lol2 = !"git lg1"
+  lol = !"git lg2"
+  lol2 = !"git lg1"
+  lola = !"git lol --all"
+  lola2 = !"git lol2 --all"
 
-    lola = !"git lol --all"
-    lola2 = !"git lol2 --all"
-
-    #diff
-    dc = diff --cached
-
-    # Gitflow
-    feature = flow feature
-    ft = flow feature
-    fs = flow feature start
-    ff = flow feature finish
-    release = flow release
-    rl = flow release
-    rs = flow release start
-    rf = flow release finish
-    hotfix = flow hotfix
-    hf = flow hotfix
-    hs = flow hotfix start
-    hf = flow hotfix finish
-
-    st = status
-    s = status
-    br = branch
-    bra = branch -a
-    ci = commit -a
-    co = checkout
-    st = status
-    praise = blame
-    bl = gui blame
-    ri = rebase --interactive --autosquash
-    ca = commit --amend
-    cf = commit --fixup
-
-    ss = diff --stat
-    m = merge --no-ff --log
-    cm = commit -m
-    d = diff
-  wd = diff --word-diff
+  #diff
 	alias = config --get-regexp 'alias.*'
+	wd = diff --word-diff
+  br = branch
+  bra = branch -alv --sort=authordate
+  ca = commit --amend
+  cf = commit --fixup
+  ci = commit -a
+  cm = commit -m
+  co = checkout
+  d = diff
+  dc = diff --cached
+  m = merge --no-ff --log
+  ri = rebase --interactive --autosquash
+  s = status
+  ss = diff --stat
+  st = status
 [color]
-    ui = auto
-    branch = auto
+  ui = auto
+  branch = auto
 [color "branch"]
-    current = green bold reverse
-    local = green
-    remote = yellow
+  current = green bold reverse
+  local = green
+  remote = yellow
 [color "diff"]
-    meta = yellow bold
-    frag = magenta bold
-    old = red bold reverse
-    new = green bold reverse
+  meta = yellow bold
+  frag = magenta bold
+  old = red bold reverse
+  new = green bold reverse
 	whitespace = cyan reverse
 [color "status"]
-    added = green
-    changed = yellow
-    untracked = red
+	added = green
+	changed = yellow
+	untracked = red
 [color "decorate"]
-    head = bold cyan reverse
-    branch = bold green reverse
-    remotebranch = bold yellow reverse
-    
+	head = bold cyan reverse
+	branch = bold green reverse
+	remotebranch = bold yellow reverse
 [apply]
-    whitespace = strip
-
+	whitespace = strip
 [diff]
-        color = auto
-        rename = copy
+	color = auto
+	rename = copy
 [pager]
-        color = true
-
+	color = true
 [status]
-        color = auto
-
+	color = auto
 [core]
 	excludesfile = /Users/yuri/.gitignore_global
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+	ignorecase = false
 [log]
   decorate = full
   pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
-[github]
-  user = yurikoval
-  token =
 [branch]
   autosetuprebase = always
 [gc]
 	auto = 0
 [push]
 	default = current
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg
