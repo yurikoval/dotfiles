@@ -61,7 +61,7 @@
 [status]
 	color = auto
 [core]
-	excludesfile = /Users/yuri/.gitignore_global
+	excludesfile = $HOME/.gitignore_global
 	ignorecase = false
 [log]
   decorate = full
