@@ -1,4 +1,4 @@
-PROMPT='%{$fg[red]%}$(rvm-prompt i v g s)%{$fg[green]%}%p %{$fg[green]%}%c%{$fg_bold[blue]%}$(git_prompt_info)%{$fg[yellow]%} > %{$reset_color%}'
+PROMPT='%{$fg[red]%}%{$fg[green]%}%p %{$fg[green]%}%c%{$fg_bold[blue]%}$(git_prompt_info)%{$fg[yellow]%} > %{$reset_color%}'
 
 ZSH_THEME_GIT_PROMPT_PREFIX="("
 ZSH_THEME_GIT_PROMPT_SUFFIX=")"
