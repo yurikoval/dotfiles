@@ -39,21 +39,21 @@ brew install zsh
 brew install zsh-autosuggestions
 
 # Install casks
-brew cask install 1password
-brew cask install alfred
-brew cask install bartender
-brew cask install brave
-brew cask install divvy
-brew cask install dotnet-sdk
-brew cask install google-chrome
-brew cask install hyper
-brew cask install iterm2
-brew cask install menumeters
-brew cask install quicksilver
-brew cask install slack
-brew cask install spectacle
-brew cask install tower
-brew cask install visual-studio-code
+brew install --cask 1password
+brew install --cask alfred
+brew install --cask bartender
+brew install --cask brave
+brew install --cask divvy
+brew install --cask dotnet-sdk
+brew install --cask google-chrome
+brew install --cask hyper
+brew install --cask iterm2
+brew install --cask menumeters
+brew install --cask quicksilver
+brew install --cask slack
+brew install --cask spectacle
+brew install --cask tower
+brew install --cask visual-studio-code
 
 # Install fzf
 brew install fzf
