@@ -1,0 +1,58 @@
+alias be='bundle exec'
+alias brake='bundle exec rake'
+alias cap='bundle exec cap'
+
+alias db_migrate='brake db:migrate RAILS_ENV=test && brake db:migrate'
+alias db_rollback='brake db:rollback RAILS_ENV=test && brake db:rollback'
+
+# Git stuff
+alias g='git'
+alias gf='git flow'
+
+# tmux stuff
+# sessions
+alias tsa='tmux attach -t'
+alias tsd='tmux detach'
+alias tsl='tmux list-sessions'
+alias tsn='tmux new -s'
+alias tss='tmux switch -t'
+# windows
+alias twn='tmux new-window'
+alias tws='tmux select-window -t'
+alias twr='tmux rename-window'
+# panes
+alias tpv='tmux split-window'
+alias tph='tmux split-window -h'
+alias tpsw='tmux swap-pane'
+alias tps='tmux select-pane'
+alias tpsn='tmux select-pane -t :.+'
+# Helpful
+alias tlk='tmux list-keys'
+alias tlc='tmux list-commands'
+alias ti='tmux info'
+alias trl='tmux source-file ~/.tmux.conf'
+
+#custom aliases
+alias r='rails'
+alias rs='rails server'
+alias g='git'
+alias gs='git status'
+alias ga='git add -p'
+alias gg='git lol'
+alias gga='git lola'
+alias gf='git fetch'
+alias co='git checkout'
+alias br='git branch'
+alias bra='git branch --all'
+alias be='bundle exec'
+alias beg='bundle exec guard start'
+alias b='bundle'
+alias ber='bundle exec rspec'
+alias gc='commit_helper'
+alias z='zeus'
+alias zr='zeus rspec'
+alias ra='rake'
+alias rmr='rake nibs:clean && rake resources'
+alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
+alias cal='DEVICE=ipad rake calabash:run'
+alias fs='foreman start'
