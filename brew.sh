@@ -16,27 +16,27 @@ brew upgrade
 brew tap heroku/brew
 
 # Install binaries
-brew install ack
-brew install bat
-brew install cowsay
-brew install diff-so-fancy
-brew install fortune
-brew install gpg
-brew install gh
-brew install git
-brew install git-lfs
-brew install heroku
-brew install lolcat
-brew install openssh
-brew install openssl
-brew install rename
-brew install stow
-brew install tldr
-brew install tree
-brew install webp
-brew install wget
-brew install zsh
-brew install zsh-autosuggestions
+brew install ack \
+  bat \
+  cowsay \
+  diff-so-fancy \
+  fortune \
+  gpg \
+  gh \
+  git \
+  git-lfs \
+  heroku \
+  lolcat \
+  openssh \
+  openssl \
+  rename \
+  stow \
+  tldr \
+  tree \
+  webp \
+  wget \
+  zsh \
+  zsh-autosuggestions
 
 # Install casks
 brew install --cask 1password
