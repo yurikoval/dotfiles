@@ -5,3 +5,6 @@ source $HOME/.boot_actions
 if [ -f /opt/local/etc/bash_completion ]; then
     . /opt/local/etc/bash_completion
 fi
+
+# enable fuzzy search
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
