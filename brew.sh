@@ -47,13 +47,17 @@ brew install --cask divvy
 brew install --cask dotnet-sdk
 brew install --cask google-chrome
 brew install --cask hyper
+brew install --cask imageoptim
 brew install --cask iterm2
 brew install --cask menumeters
+brew install --cask protonvpn protonmail-bridge proton-drive
 brew install --cask quicksilver
+brew install --cask skitch
 brew install --cask slack
 brew install --cask spectacle
 brew install --cask tower
 brew install --cask visual-studio-code
+brew install --cask whatsapp
 
 # Install fzf
 brew install fzf
