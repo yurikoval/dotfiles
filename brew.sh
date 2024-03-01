@@ -21,6 +21,7 @@ brew install bat
 brew install cowsay
 brew install diff-so-fancy
 brew install fortune
+brew install gpg
 brew install gh
 brew install git
 brew install git-lfs
