@@ -56,3 +56,5 @@ alias rmr='rake nibs:clean && rake resources'
 alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
 alias cal='DEVICE=ipad rake calabash:run'
 alias fs='foreman start'
+
+alias cat='bat'
