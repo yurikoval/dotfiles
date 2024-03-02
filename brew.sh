@@ -53,6 +53,7 @@ brew install --cask menumeters
 brew install --cask protonvpn protonmail-bridge proton-drive
 brew install --cask quicksilver
 brew install --cask skitch
+brew install --cask signal
 brew install --cask slack
 brew install --cask spectacle
 brew install --cask tower
