@@ -1,3 +1,5 @@
 export EDITOR=/usr/bin/vim
+export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
 cd $HOME/DEV
 cowsay `fortune` | lolcat
