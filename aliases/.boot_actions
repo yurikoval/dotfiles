@@ -3,3 +3,5 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 
 cd $HOME/DEV
 cowsay `fortune` | lolcat
+
+. /opt/homebrew/etc/profile.d/z.sh

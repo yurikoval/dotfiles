@@ -36,6 +36,7 @@ brew install ack \
   tree \
   webp \
   wget \
+  z \
   zsh \
   zsh-autosuggestions
 
