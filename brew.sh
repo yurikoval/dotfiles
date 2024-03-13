@@ -31,6 +31,7 @@ brew install ack \
   openssl \
   rename \
   stow \
+  terraform \
   tldr \
   tree \
   webp \
@@ -46,6 +47,7 @@ brew install --cask brave
 brew install --cask divvy
 brew install --cask dotnet-sdk
 brew install --cask google-chrome
+brew install --cask google-cloud-sdk
 brew install --cask hyper
 brew install --cask imageoptim
 brew install --cask iterm2
