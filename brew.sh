@@ -53,6 +53,10 @@ brew install --cask hyper
 brew install --cask imageoptim
 brew install --cask iterm2
 brew install --cask notion
+brew install --cask omnifocus
+brew install --cask omnigraffle
+brew install --cask omnioutliner
+brew install --cask omniplan
 brew install --cask menumeters
 brew install --cask protonvpn protonmail-bridge proton-drive
 brew install --cask quicksilver
