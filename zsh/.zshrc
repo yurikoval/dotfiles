@@ -19,3 +19,5 @@ setopt hist_expire_dups_first
 
 source $HOME/.aliases
 source $HOME/.boot_actions
+
+eval "$(fzf --zsh)"

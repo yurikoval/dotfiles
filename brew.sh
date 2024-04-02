@@ -21,6 +21,7 @@ brew install ack \
   cowsay \
   diff-so-fancy \
   fortune \
+  fzf \
   gpg \
   gh \
   git \
