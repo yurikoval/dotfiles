@@ -57,4 +57,4 @@ alias fs='foreman start'
 
 alias tf='terraform'
 
-alias cat='bat'
+alias cat='bat -P'
