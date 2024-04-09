@@ -46,8 +46,10 @@ brew install --cask 1password
 brew install --cask alfred
 brew install --cask bartender
 brew install --cask brave
+brew install --cask cyberduck
 brew install --cask divvy
 brew install --cask dotnet-sdk
+brew install --cask figma
 brew install --cask google-chrome
 brew install --cask google-cloud-sdk
 brew install --cask hyper
