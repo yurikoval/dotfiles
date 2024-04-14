@@ -56,6 +56,7 @@ brew install --cask hyper
 brew install --cask imageoptim
 brew install --cask iterm2
 brew install --cask notion
+brew install --cask obsidian
 brew install --cask omnifocus
 brew install --cask omnigraffle
 brew install --cask omnioutliner
