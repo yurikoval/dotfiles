@@ -45,7 +45,7 @@ brew install ack \
 brew install --cask 1password
 brew install --cask alfred
 brew install --cask bartender
-brew install --cask brave
+brew install --cask brave-browser
 brew install --cask cyberduck
 brew install --cask divvy
 brew install --cask dotnet-sdk
