@@ -47,6 +47,7 @@ brew install --cask alfred
 brew install --cask bartender
 brew install --cask brave-browser
 brew install --cask cyberduck
+brew install --cask discord
 brew install --cask divvy
 brew install --cask dotnet-sdk
 brew install --cask figma
