@@ -28,6 +28,7 @@ brew install ack \
   git \
   git-lfs \
   heroku \
+  jq \
   lolcat \
   openssh \
   openssl \
