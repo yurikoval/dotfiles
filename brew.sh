@@ -17,6 +17,7 @@ brew tap heroku/brew
 
 # Install binaries
 brew install ack \
+  asdf \
   bat \
   cowsay \
   diff-so-fancy \
