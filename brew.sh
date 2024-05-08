@@ -39,6 +39,7 @@ brew install ack \
   tree \
   webp \
   wget \
+  youtube-dl \
   z \
   zsh \
   zsh-autosuggestions
