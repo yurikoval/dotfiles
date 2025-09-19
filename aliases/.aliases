@@ -58,3 +58,6 @@ alias fs='foreman start'
 alias tf='terraform'
 
 alias cat='bat -P'
+
+alias d='docker compose'
+alias dr='docker compose run --remove-orphans'
