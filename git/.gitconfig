@@ -32,6 +32,8 @@
   st = status
   sweep = !git branch --merged master | grep -v 'master$' | xargs git branch -d\
           && git remote prune origin
+  sweep2 = !git branch --merged main | grep -v 'main$' | xargs git branch -d\
+          && git remote prune origin
 [color]
   ui = auto
   branch = auto
