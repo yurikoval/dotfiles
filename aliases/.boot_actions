@@ -3,8 +3,5 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 
 export FLUTTER_ROOT="$(asdf where flutter)"
 
-cd $HOME/DEV
-cowsay `fortune` | lolcat
-
 . /opt/homebrew/etc/profile.d/z.sh
 . /opt/homebrew/opt/asdf/libexec/asdf.sh
