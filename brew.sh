@@ -21,6 +21,7 @@ brew install ack \
   bat \
   cowsay \
   diff-so-fancy \
+  ffmpeg \
   fortune \
   fzf \
   gpg \
