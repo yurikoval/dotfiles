@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk:*)",
+      "Bash(bat:*)",
+      "Bash(cargo:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(sed:*)",
+      "Bash(docker compose:*)",
+      "Bash(xargs:*)",
+      "Skill(rspec-testing)",
+      "Skill(superpowers:*)",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true,
+    "commit-commands@claude-code-plugins": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "playwright": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/playwright"
+      ]
+    }
+  }
+}
