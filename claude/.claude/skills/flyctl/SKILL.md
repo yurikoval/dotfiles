@@ -1,0 +1,219 @@
+---
+name: flyctl
+description: Use when deploying to Fly.io, managing Fly apps/machines/volumes/secrets, scaling VMs, viewing logs, or running fly CLI commands
+---
+
+# flyctl - Fly.io CLI
+
+## Overview
+
+flyctl is the CLI for Fly.io platform. Deploy apps, manage machines, secrets, volumes, databases, and networking.
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Create app | `fly launch` |
+| Deploy | `fly deploy` |
+| View status | `fly status` |
+| View logs | `fly logs` |
+| SSH into machine | `fly ssh console` |
+| Set secrets | `fly secrets set NAME=value` |
+| Scale VMs | `fly scale count N` |
+| List machines | `fly machine list` |
+
+## Core Commands
+
+### fly launch
+Create and configure new app from source or Docker image.
+
+```bash
+fly launch                          # Interactive setup
+fly launch --name myapp --region lax --no-deploy
+fly launch --image nginx:latest --now
+fly launch --db mpg                 # With managed Postgres
+```
+
+Key flags: `--name`, `--org`, `--region`, `--image`, `--dockerfile`, `--no-deploy`, `--now`, `--vm-size`, `--vm-memory`, `--db`
+
+### fly deploy
+Deploy app from source or image.
+
+```bash
+fly deploy                          # Deploy current directory
+fly deploy --image myimage:tag
+fly deploy --strategy canary        # canary|rolling|bluegreen|immediate
+fly deploy --local-only             # Build locally (not remote)
+fly deploy -e ENV_VAR=value
+```
+
+Key flags: `--app`, `--config`, `--image`, `--dockerfile`, `--strategy`, `--local-only`, `--remote-only`, `--vm-size`, `--regions`, `--env`, `--detach`
+
+### fly status
+Show app status, instances, regions, deployment details.
+
+```bash
+fly status
+fly status --app myapp
+fly status --watch              # Continuous refresh
+fly status --json
+```
+
+### fly logs
+Stream application logs.
+
+```bash
+fly logs
+fly logs --app myapp
+fly logs --region lax
+fly logs --machine MACHINE_ID
+fly logs --no-tail              # Buffered only, no stream
+fly logs --json
+```
+
+## Secrets
+
+Secrets are injected as environment variables at runtime. Names are case-sensitive.
+
+```bash
+fly secrets set DATABASE_URL="postgres://..." SECRET_KEY="abc123"
+fly secrets list
+fly secrets unset SECRET_NAME
+fly secrets import < .env       # Import from stdin
+```
+
+## Machines
+
+Fly Machines are fast-launching VMs.
+
+```bash
+fly machine list
+fly machine create --app myapp
+fly machine start MACHINE_ID
+fly machine stop MACHINE_ID
+fly machine destroy MACHINE_ID
+fly machine status MACHINE_ID
+fly machine clone MACHINE_ID
+fly machine exec MACHINE_ID -- command
+```
+
+## Scaling
+
+```bash
+fly scale show                  # Current resources
+fly scale count 3               # Set VM count
+fly scale count web=3 worker=1  # Per process group
+fly scale vm shared-cpu-2x      # Change VM size
+fly scale memory 512            # Set memory (MB)
+```
+
+VM sizes: `shared-cpu-1x`, `shared-cpu-2x`, `performance-1x`, `performance-2x`, etc.
+
+## Volumes
+
+Persistent storage for machines.
+
+```bash
+fly volumes create myvolume --region lax --size 10
+fly volumes list
+fly volumes show VOL_ID
+fly volumes extend VOL_ID --size 20
+fly volumes destroy VOL_ID
+fly volumes snapshots list VOL_ID
+```
+
+## SSH & File Transfer
+
+```bash
+fly ssh console                 # Interactive shell
+fly ssh console -C "command"    # Run command
+fly sftp get /remote/path ./local/path
+fly sftp put ./local/path /remote/path
+```
+
+## Postgres
+
+```bash
+fly postgres create             # New cluster
+fly postgres list
+fly postgres connect -a pg-app  # psql console
+fly postgres attach pg-app      # Attach to app
+fly postgres detach pg-app
+fly postgres import pg-app < dump.sql
+```
+
+Note: Unmanaged Postgres is user-operated. Use `fly mpg` for managed Postgres.
+
+## Apps Management
+
+```bash
+fly apps list
+fly apps create myapp
+fly apps destroy myapp
+fly apps restart myapp
+fly apps open                   # Open in browser
+fly apps releases               # List releases
+fly apps move myapp --org neworg
+```
+
+## Networking
+
+```bash
+fly ips list
+fly ips allocate-v4
+fly ips allocate-v6
+fly ips release IP_ADDRESS
+fly certs list
+fly certs add example.com
+fly certs remove example.com
+```
+
+## Global Flags
+
+All commands support:
+- `-a, --app` - App name
+- `-c, --config` - Config file path (default: fly.toml)
+- `-t, --access-token` - API token
+- `--debug` - Debug output
+- `--verbose` - Verbose output
+- `--json` / `-j` - JSON output (where supported)
+
+## Common Workflows
+
+**Initial deployment:**
+```bash
+fly auth login
+fly launch
+# Edit fly.toml as needed
+fly deploy
+```
+
+**Update with secrets:**
+```bash
+fly secrets set NEW_SECRET=value
+fly deploy
+```
+
+**Scale for traffic:**
+```bash
+fly scale count 3 --region lax,ord
+fly scale vm performance-1x
+```
+
+**Debug failing app:**
+```bash
+fly status
+fly logs --no-tail
+fly ssh console
+```
+
+## Config File (fly.toml)
+
+Generated by `fly launch`. Key sections:
+- `app` - App name
+- `primary_region` - Default region
+- `[build]` - Build configuration
+- `[env]` - Environment variables
+- `[http_service]` - HTTP settings
+- `[[services]]` - Service definitions
+- `[[mounts]]` - Volume mounts
