@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(agent-browser:*)",
       "Bash(awk:*)",
       "Bash(bat:*)",
       "Bash(cargo:*)",
