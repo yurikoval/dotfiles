@@ -33,6 +33,8 @@ alias ti='tmux info'
 alias trl='tmux source-file ~/.tmux.conf'
 
 #custom aliases
+alias c='claude'
+alias cw='claude -w'
 alias r='rails'
 alias rs='rails server'
 alias g='git'
@@ -61,3 +63,5 @@ alias cat='bat -P'
 
 alias d='docker compose'
 alias dr='docker compose run --remove-orphans'
+
+alias brew_upgrade='brew update; brew upgrade -y; brew cleanup --prune=1 -s'

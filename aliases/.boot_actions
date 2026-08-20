@@ -1,7 +1,5 @@
 export EDITOR=/usr/bin/vim
 export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-
-export FLUTTER_ROOT="$(asdf where flutter)"
+export PATH="/Users/yuri/.bun/bin:$PATH"
 
 . /opt/homebrew/etc/profile.d/z.sh
-. /opt/homebrew/opt/asdf/libexec/asdf.sh

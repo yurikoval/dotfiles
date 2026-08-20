@@ -4,30 +4,253 @@
       "Bash(agent-browser:*)",
       "Bash(awk:*)",
       "Bash(bat:*)",
+      "Bash(bin/rails generate:*)",
       "Bash(cargo:*)",
       "Bash(cat:*)",
       "Bash(curl:*)",
+      "Bash(dig:*)",
+      "Bash(cwebp:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker network connect:*)",
+      "Bash(docker ps:*)",
       "Bash(find:*)",
+      "Bash(gh api:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh pr:*)",
       "Bash(git:*)",
       "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(jq:*)",
+      "Bash(kubectl:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(sed:*)",
-      "Bash(docker compose:*)",
+      "Bash(sips:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
       "Bash(xargs:*)",
+      "Bash(yt-dlp:*)",
+      "Skill(agent-browser:*)",
+      "Skill(create-pr)",
+      "Skill(last30days)",
+      "Skill(nano-banana)",
       "Skill(rspec-testing)",
+      "Skill(implement-plan)",
       "Skill(superpowers:*)",
-      "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "WebSearch"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "auto"
+  },
+  "model": "opus",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cbm-code-discovery-gate",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cbm-session-reminder"
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cbm-session-reminder"
+          }
+        ]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cbm-session-reminder"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cbm-session-reminder"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yuri/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/yuri/.claude/statusline-command.sh",
+    "padding": 0,
+    "refreshInterval": 10
   },
   "enabledPlugins": {
     "frontend-design@claude-code-plugins": true,
     "commit-commands@claude-code-plugins": true,
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "playground@claude-plugins-official": true,
+    "ruby-lsp@claude-plugins-official": true,
+    "last30days@last30days-skill": true,
+    "banana-claude@banana-claude-marketplace": true
   },
+  "extraKnownMarketplaces": {
+    "last30days-skill": {
+      "source": {
+        "source": "github",
+        "repo": "mvanhorn/last30days-skill"
+      },
+      "autoUpdate": true
+    },
+    "banana-claude-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "AgriciDaniel/banana-claude"
+      }
+    },
+    "claude-skills-journalism": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/jamditis/claude-skills-journalism.git"
+      }
+    }
+  },
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "verbose": true,
+  "skipAutoPermissionPrompt": true,
   "mcpServers": {
     "playwright": {
       "command": "docker",
@@ -36,6 +259,17 @@
         "-i",
         "--rm",
         "mcp/playwright"
+      ]
+    },
+    "kubernetes": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/Users/yuri/.kube:/root/.kube",
+        "mcp/kubernetes"
       ]
     }
   }

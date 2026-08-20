@@ -14,6 +14,6 @@ $1
 - must have a comprehensive todo list for implementing this plan
 - Provide minimal code changes
 - Use readable and performant code
-- Do not plan for tests
+- Do not plan for tests; tests will be implemented in implementation phase separately.
 - must not break existing functionality
-</plan_requirements)
+</plan_requirements>
