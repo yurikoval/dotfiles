@@ -1,0 +1,1 @@
+/Users/yuri/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts
