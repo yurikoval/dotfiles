@@ -26,4 +26,4 @@ eval "$(fzf --zsh)"
 eval "$(direnv hook zsh)"
 
 # Private environment
-source $HOME/.secrets
+source "${${(%):-%N}:A:h}/.secrets"
