@@ -1,4 +1,32 @@
 {
-  "lastChangelogVersion": "0.84.2",
-  "theme": "dark"
+  "lastChangelogVersion": "1.0.4",
+  "theme": "dark",
+  "packages": [
+    "npm:pi-web-access",
+    "npm:pi-open-agents",
+    "npm:pi-mcp-adapter",
+    "npm:pi-image-view",
+    "npm:@narumitw/pi-github-pr",
+    "npm:pi-jev",
+    "npm:@balaenis/pi-lsp",
+    "npm:pi-memory",
+    "npm:pi-knowledge"
+  ],
+  "enabledModels": [
+    "openai-codex/gpt-5.6-sol:high",
+    "openai-codex/gpt-5.6-terra:low",
+    "openai-codex/gpt-5.6-luna:off"
+  ],
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 12000,
+    "keepRecentTokens": 14000
+  },
+  "hideThinkingBlock": true,
+  "extensions": [
+    "-builtin:mcp"
+  ]
 }
