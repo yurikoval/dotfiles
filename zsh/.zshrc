@@ -23,23 +23,13 @@ source $HOME/.boot_actions
 eval "$(fzf --zsh)"
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 
-# Added by Antigravity
-export PATH="/Users/yuri/.antigravity/antigravity/bin:$PATH"
-
-# add Pulumi to the PATH
-export PATH=$PATH:/Users/yuri/.pulumi/bin
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/yuri/.lmstudio/bin"
-# End of LM Studio CLI section
-
 eval "$(direnv hook zsh)"
 
-export BRAVE_API_KEY="$(security find-generic-password -s brave-api-key -w)"
-export ELEVENLABS_API_KEY="$(security find-generic-password -s elevenlabs-api-key -w)"
-export SCRAPECREATORS_API_KEY="$(security find-generic-password -s scrape-creators-key -w)"
-export OPENROUTER_API_KEY="$(security find-generic-password -s open-router-key -w)"
-export DRPC_API_KEY="$(security find-generic-password -s drpc-org-key -w)"
+source $HOME/.secrets
+export TRACK_ORCH_DECISION_ASSIGNEE_USER_ID="us_01M1GXPZKSQH8JKE5SCWJ30YGY"
 
 # Added by codebase-memory-mcp install
 export PATH="/Users/yuri/.local/bin:$PATH"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+export PATH="$HOME/bin:$PATH"

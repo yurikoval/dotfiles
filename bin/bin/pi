@@ -1,0 +1,57 @@
+#!/bin/zsh
+
+real_pi=""
+for dir in "${path[@]}"; do
+  candidate="$dir/pi"
+  if [[ -x "$candidate" && "${candidate:A}" != "${0:A}" ]]; then
+    real_pi="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$real_pi" ]]; then
+  echo "pi: underlying pi executable not found" >&2
+  exit 127
+fi
+
+if [[ "$1" != "-w" && "$1" != "--worktree" ]]; then
+  exec "$real_pi" "$@"
+fi
+
+shift
+name="$1"
+if [[ -z "$name" ]]; then
+  echo "usage: pi -w <branch-name> [pi args...]" >&2
+  exit 2
+fi
+shift
+
+top="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+  echo "pi -w: not inside a git repository" >&2
+  exit 1
+}
+
+common="$(git -C "$top" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || exit 1
+if [[ "${common:t}" == ".git" ]]; then
+  root="${common:h}"
+else
+  root="$top"
+fi
+
+safe_name="${name//\//-}"
+wt_path="$root/.pi/worktrees/$safe_name"
+mkdir -p "$root/.pi/worktrees"
+printf '*\n' > "$root/.pi/worktrees/.gitignore"
+
+if [[ ! -e "$wt_path" ]]; then
+  if git -C "$root" show-ref --verify --quiet "refs/heads/$name"; then
+    git -C "$root" worktree add "$wt_path" "$name" || exit $?
+  else
+    git -C "$root" worktree add -b "$name" "$wt_path" || exit $?
+  fi
+elif [[ ! -e "$wt_path/.git" ]]; then
+  echo "pi -w: $wt_path exists but is not a git worktree" >&2
+  exit 1
+fi
+
+cd "$wt_path" && exec "$real_pi" "$@"
