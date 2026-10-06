@@ -1,5 +1,11 @@
+# Shared environment
 export EDITOR=/usr/bin/vim
-export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-export PATH="/Users/yuri/.bun/bin:$PATH"
+export TRACK_ORCH_DECISION_ASSIGNEE_USER_ID="us_01M1GXPZKSQH8JKE5SCWJ30YGY"
 
+# Command search path
+export PATH="$HOME/bin:${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$HOME/.local/bin:\
+/opt/homebrew/opt/libpq/bin:$HOME/.bun/bin:/usr/local/bin:$PATH:\
+/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
+# Shared shell integrations
 . /opt/homebrew/etc/profile.d/z.sh

@@ -1,72 +1,70 @@
+# AI tools
+alias c='claude'
+alias cw='claude -w'
+alias pw='pi -w "pw-$(openssl rand -hex 4)"'
+
+# Ruby and Rails
+alias b='bundle'
 alias be='bundle exec'
+alias beg='bundle exec guard start'
+alias ber='bundle exec rspec'
 alias brake='bundle exec rake'
 alias cap='bundle exec cap'
-
 alias db_migrate='brake db:migrate RAILS_ENV=test && brake db:migrate'
 alias db_rollback='brake db:rollback RAILS_ENV=test && brake db:rollback'
+alias fs='foreman start'
+alias r='rails'
+alias ra='rake'
+alias rs='rails server'
 
-# Git stuff
+# Git
 alias g='git'
-alias gf='git flow'
+alias br='git branch'
+alias bra='git branch --all'
+alias co='git checkout'
+alias ga='git add -p'
+alias gc='commit_helper'
+alias gf='git fetch'
+alias gg='git lol'
+alias gga='git lola'
+alias gs='git status'
 
-# tmux stuff
-# sessions
+# tmux sessions
 alias tsa='tmux attach -t'
 alias tsd='tmux detach'
 alias tsl='tmux list-sessions'
 alias tsn='tmux new -s'
 alias tss='tmux switch -t'
-# windows
+
+# tmux windows
 alias twn='tmux new-window'
-alias tws='tmux select-window -t'
 alias twr='tmux rename-window'
-# panes
-alias tpv='tmux split-window'
+alias tws='tmux select-window -t'
+
+# tmux panes
 alias tph='tmux split-window -h'
-alias tpsw='tmux swap-pane'
 alias tps='tmux select-pane'
 alias tpsn='tmux select-pane -t :.+'
-# Helpful
-alias tlk='tmux list-keys'
-alias tlc='tmux list-commands'
+alias tpsw='tmux swap-pane'
+alias tpv='tmux split-window'
+
+# tmux help and configuration
 alias ti='tmux info'
+alias tlc='tmux list-commands'
+alias tlk='tmux list-keys'
 alias trl='tmux source-file ~/.tmux.conf'
 
-#custom aliases
-alias c='claude'
-alias cw='claude -w'
-alias pw='pi -w "pw-$(openssl rand -hex 4)"'
-
-alias r='rails'
-alias rs='rails server'
-alias g='git'
-alias gs='git status'
-alias ga='git add -p'
-alias gg='git lol'
-alias gga='git lola'
-alias gf='git fetch'
-alias co='git checkout'
-alias br='git branch'
-alias bra='git branch --all'
-alias be='bundle exec'
-alias beg='bundle exec guard start'
-alias b='bundle'
-alias ber='bundle exec rspec'
-alias gc='commit_helper'
-alias ra='rake'
-alias rmr='rake nibs:clean && rake resources'
-alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
+# Apple development
 alias cal='DEVICE=ipad rake calabash:run'
-alias fs='foreman start'
+alias rmib='rake ib:project && cp ib.xcodeproj/Stubs.h xcode/sekken/sekken/'
+alias rmr='rake nibs:clean && rake resources'
 
-alias tf='terraform'
-
-alias cat='bat -P'
-
+# Containers and infrastructure
 alias d='docker compose'
 alias dr='docker compose run --remove-orphans'
+alias tf='terraform'
 
+# Utilities
 alias brew_upgrade='brew update; brew upgrade -y; brew cleanup --prune=1 -s'
-
-# Track alias
-alias track-cli="/Users/yuri/DEV/track/bin/client-cli"
+alias cat='bat -P'
+alias track-cli="$HOME/DEV/track/bin/client-cli"
