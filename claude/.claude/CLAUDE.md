@@ -15,11 +15,11 @@ You run in an environment where `ast-grep` is available; whenever a search requi
 
 ### Codebase memory index
 
-When exploring or searching code, use the `codebase-memory-mcp` graph tools alongside `rg`/`ast-grep`/`Grep`:
+When looking up code in any repository, use `codebase-memory-mcp cli` first or alongside `rg`/`ast-grep`/`Grep`:
 
-- Reach for `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, and `search_code` to find symbols, call chains, and structure — they understand code semantics that text search misses.
+- Prefer `codebase-memory-mcp cli search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, and `search_code` for symbols, call chains, dependencies, and structure.
 - Keep using `rg`/`ast-grep`/`Grep`/`Read` for text, configs, non-code files, and always `Read` a file before editing it.
-- If the current repository is not indexed yet (check with `index_status`; `list_projects` shows what's available), run `index_repository` FIRST, then proceed.
+- If the current repository is not indexed yet, run `codebase-memory-mcp cli list_projects`, then `index_status` for the matching project; if missing, run `codebase-memory-mcp cli index_repository '{"repo_path":"$PWD"}'` FIRST, then proceed.
 
 ---
 
