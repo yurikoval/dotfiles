@@ -10,6 +10,147 @@ const DECISION_WAIT_MARKER = "SHEVA_WAITING_FOR_DECISIONS";
 const DECISION_ID_RE = /^(?:cm|cmt)_[A-Za-z0-9]+$/;
 export const SHEVA_PR_CHECKS_SCRIPT = join(homedir(), ".pi", "agent", "bin", "sheva-pr-checks");
 
+export type ShevaReasoningLevel = "fast" | "standard" | "high";
+export type ShevaRiskClass = "routine" | "ordinary" | "high";
+export type ShevaStep =
+	| "plan"
+	| "decision"
+	| "implementation"
+	| "review"
+	| "verification"
+	| "pr"
+	| "comments"
+	| "merge-repair";
+
+export type ShevaReasoningPolicy = {
+	level: ShevaReasoningLevel;
+	risk: ShevaRiskClass;
+	reason: string;
+	escalated: boolean;
+};
+
+export type ShevaStepMetric = {
+	label: string;
+	level: ShevaReasoningLevel;
+	risk: ShevaRiskClass;
+	escalated: boolean;
+	reason: string;
+	elapsedMs: number;
+	success: boolean;
+	routingApplied: boolean;
+	model?: string;
+};
+
+const RISK_LEVELS: Record<ShevaRiskClass, ShevaReasoningLevel> = {
+	routine: "fast",
+	ordinary: "standard",
+	high: "high",
+};
+const STEP_RISKS: Record<ShevaStep, ShevaRiskClass> = {
+	plan: "ordinary",
+	decision: "high",
+	implementation: "ordinary",
+	review: "ordinary",
+	verification: "routine",
+	pr: "routine",
+	comments: "ordinary",
+	"merge-repair": "ordinary",
+};
+const HIGH_RISK_HINT =
+	/\b(auth(?:entication|orization)?|tenan(?:t|cy)|secret|billing|credit|money|payment|subscription|webhook|schema|migration|destructive|concurren(?:cy|t)|idempoten(?:cy|t)|race|queue|lease|retry|production|deploy(?:ment)?|data loss|merge conflict|unexplained (?:failure|ci))\b/i;
+const THINKING_LEVELS: Record<ShevaReasoningLevel, "low" | "medium" | "high"> = {
+	fast: "low",
+	standard: "medium",
+	high: "high",
+};
+const stepMetrics = new WeakMap<object, ShevaStepMetric[]>();
+
+export function reasoningPolicyForRisk(
+	risk: ShevaRiskClass | string | undefined,
+	reason: string,
+	details = "",
+): ShevaReasoningPolicy {
+	if (risk !== "routine" && risk !== "ordinary" && risk !== "high") {
+		return { level: "high", risk: "high", reason: `${reason}; unknown risk defaults high`, escalated: true };
+	}
+
+	const match = details.match(HIGH_RISK_HINT)?.[0];
+	if (risk !== "high" && match) {
+		return { level: "high", risk: "high", reason: `${reason}; high-risk signal: ${match}`, escalated: true };
+	}
+	return { level: RISK_LEVELS[risk], risk, reason, escalated: false };
+}
+
+export function reasoningPolicyForStep(step: ShevaStep, details = ""): ShevaReasoningPolicy {
+	return reasoningPolicyForRisk(STEP_RISKS[step], `${step} default`, details);
+}
+
+export function escalateReasoningPolicy(
+	policy: ShevaReasoningPolicy,
+	reason: string,
+): ShevaReasoningPolicy {
+	if (policy.level === "high") return policy;
+	return { level: "high", risk: "high", reason, escalated: true };
+}
+
+export function formatReasoningBudget(policy: ShevaReasoningPolicy): string {
+	return `## Reasoning budget
+
+Current stage risk: ${policy.risk}; preferred reasoning: ${policy.level}.
+Use fast reasoning for mechanical inspection, edits, tests, and Git operations. Reserve deep reasoning for decisions in the current risk class. Escalate to high reasoning before changing authentication, authorization, tenancy, secrets, money, billing, schema/migrations, destructive behavior, concurrency/idempotency, production configuration, or an unclear failure. Do not downgrade within a stage after escalation. Record the reasoning level, escalation reason (${policy.escalated ? policy.reason : "none"}), and stage boundary in the execution ledger.`;
+}
+
+function reasoningRoutingEnabled(): boolean {
+	return process.env.SHEVA_REASONING_ROUTING === "1";
+}
+
+function getThinkingLevel(pi: ExtensionAPI): ReturnType<ExtensionAPI["getThinkingLevel"]> | undefined {
+	try {
+		return typeof pi.getThinkingLevel === "function" ? pi.getThinkingLevel() : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function applyReasoningPolicy(pi: ExtensionAPI, policy: ShevaReasoningPolicy): boolean {
+	if (!reasoningRoutingEnabled() || typeof pi.setThinkingLevel !== "function") return false;
+	try {
+		pi.setThinkingLevel(THINKING_LEVELS[policy.level]);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function restoreThinkingLevel(
+	pi: ExtensionAPI,
+	level: ReturnType<ExtensionAPI["getThinkingLevel"]> | undefined,
+): void {
+	if (level === undefined || typeof pi.setThinkingLevel !== "function") return;
+	try {
+		pi.setThinkingLevel(level);
+	} catch {
+		// Routing is optional; preserve the completed step when restoration is unsupported.
+	}
+}
+
+function formatStepMetric(metric: ShevaStepMetric): string {
+	return `${metric.label}: ${metric.level}/${metric.risk}, ${metric.elapsedMs}ms, ${metric.success ? "ok" : "failed"}${metric.escalated ? `, escalated (${metric.reason})` : ""}${metric.model ? `, ${metric.model}` : ""}`;
+}
+
+export function reportShevaMetricsSummary(ctx: ExtensionCommandContext): void {
+	const metrics = stepMetrics.get(ctx) ?? [];
+	stepMetrics.delete(ctx);
+	if (process.env.SHEVA_DEBUG_METRICS !== "1" || metrics.length === 0) return;
+	const elapsedMs = metrics.reduce((total, metric) => total + metric.elapsedMs, 0);
+	const failures = metrics.filter((metric) => !metric.success).length;
+	const escalations = metrics.filter((metric) => metric.escalated).length;
+	ctx.ui.notify(
+		`Sheva metrics: ${metrics.length} step(s), ${elapsedMs}ms, ${escalations} escalation(s), ${failures} failure(s)`,
+		failures > 0 ? "warning" : "info",
+	);
+}
+
 export type ShevaDependency = {
 	name: string;
 	check: (pi: ExtensionAPI) => Promise<string | undefined>;
@@ -248,12 +389,50 @@ export async function runAgentStep(
 	ctx: ExtensionCommandContext,
 	label: string,
 	prompt: string,
-	options?: { expandPromptTemplates?: boolean },
-): Promise<void> {
-	notify(ctx, label);
-	pi.sendUserMessage(prompt, { expandPromptTemplates: options?.expandPromptTemplates ?? false });
-	// sendUserMessage is fire-and-forget from ExtensionAPI; give the prompt loop a tick
-	// to mark the agent busy before waitForIdle checks idle state.
-	await sleep(500);
-	await ctx.waitForIdle();
+	options?: {
+		expandPromptTemplates?: boolean;
+		policy?: ShevaReasoningPolicy;
+		now?: () => number;
+		settle?: () => Promise<void>;
+		debugMetrics?: boolean;
+	},
+): Promise<ShevaStepMetric> {
+	const policy = options?.policy ?? reasoningPolicyForRisk(undefined, `${label} was not classified`);
+	const now = options?.now ?? Date.now;
+	const started = now();
+	const previousThinkingLevel = reasoningRoutingEnabled() ? getThinkingLevel(pi) : undefined;
+	const routingApplied = applyReasoningPolicy(pi, policy);
+	let success = false;
+
+	try {
+		notify(ctx, label);
+		pi.sendUserMessage(prompt, { expandPromptTemplates: options?.expandPromptTemplates ?? false });
+		// sendUserMessage is fire-and-forget from ExtensionAPI; give the prompt loop a tick
+		// to mark the agent busy before waitForIdle checks idle state.
+		await (options?.settle?.() ?? sleep(500));
+		await ctx.waitForIdle();
+		success = true;
+	} finally {
+		if (routingApplied) restoreThinkingLevel(pi, previousThinkingLevel);
+		const model = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
+		const metric: ShevaStepMetric = {
+			label,
+			level: policy.level,
+			risk: policy.risk,
+			escalated: policy.escalated,
+			reason: policy.reason,
+			elapsedMs: Math.max(0, now() - started),
+			success,
+			routingApplied,
+			model,
+		};
+		const metrics = stepMetrics.get(ctx) ?? [];
+		metrics.push(metric);
+		stepMetrics.set(ctx, metrics);
+		if (options?.debugMetrics ?? process.env.SHEVA_DEBUG_METRICS === "1") {
+			ctx.ui.notify(`Sheva metric: ${formatStepMetric(metric)}`, success ? "info" : "warning");
+		}
+	}
+
+	return stepMetrics.get(ctx)!.at(-1)!;
 }
