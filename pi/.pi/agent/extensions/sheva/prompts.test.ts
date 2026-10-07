@@ -1,7 +1,30 @@
 import { describe, expect, test } from "bun:test";
-import { runImplementationPrompt } from "./prompts";
+import type { MergeCheckReport } from "./github";
+import {
+	addressPrCommentsPrompt,
+	createPrPrompt,
+	mergeRepairPrompt,
+	planPrompt,
+	requestCopilotPrompt,
+	runImplementationPrompt,
+} from "./prompts";
 
 const prompt = runImplementationPrompt("docs/implementation-plans/example.md");
+const mergeReport = {
+	ok: false,
+	pr: {
+		number: 42,
+		url: "https://example.test/pr/42",
+		state: "OPEN",
+		isDraft: false,
+		mergeStateStatus: "BLOCKED",
+		headRefName: "feature",
+		baseRefName: "main",
+	},
+	ci: { pass: false, total: 1, pending: [], failing: ["migration check"], checks: [] },
+	comments: { pass: true, unresolved: [] },
+	merge: { pass: false, noConflicts: true, stateStatus: "BLOCKED", reasons: ["database migration failure"] },
+} satisfies MergeCheckReport;
 
 const contract = {
 	"keeps Sheva orchestration boundaries": [
@@ -51,6 +74,32 @@ const contract = {
 		"defer telemetry unless manual comparison is insufficient",
 	],
 } as const;
+
+describe("reasoning budget prompts", () => {
+	const generatedPrompts = [
+		planPrompt("Document the extension"),
+		prompt,
+		createPrPrompt(),
+		requestCopilotPrompt("42"),
+		addressPrCommentsPrompt("42"),
+		mergeRepairPrompt(mergeReport),
+	];
+
+	test("adds one shared policy with escalation and ledger requirements to every agent prompt", () => {
+		for (const generated of generatedPrompts) {
+			expect(generated.match(/## Reasoning budget/g)).toHaveLength(1);
+			expect(generated).toContain("Escalate to high reasoning before changing authentication");
+			expect(generated).toContain("Record the reasoning level, escalation reason");
+			expect(generated).toContain("stage boundary in the execution ledger");
+		}
+	});
+
+	test("selects fast for PR mechanics, standard for implementation, and high for risky repair", () => {
+		expect(createPrPrompt()).toContain("Current stage risk: routine; preferred reasoning: fast.");
+		expect(prompt).toContain("Current stage risk: ordinary; preferred reasoning: standard.");
+		expect(mergeRepairPrompt(mergeReport)).toContain("Current stage risk: high; preferred reasoning: high.");
+	});
+});
 
 describe("runImplementationPrompt", () => {
 	for (const [name, clauses] of Object.entries(contract)) {
