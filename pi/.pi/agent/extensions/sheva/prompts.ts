@@ -107,12 +107,12 @@ Important Sheva orchestration rule:
 
 1. **Preflight once**
    - Check \`git status --short\` and current branch.
-   - Read the plan file once, then work from a compact task ledger.
-   - Inspect project scripts once (\`package.json\`, \`Gemfile\`, or repo docs) and reuse the exact commands. Do not guess commands like \`npm run lint\` or workspace flags.
-   - If using subagents, run one tiny cheap reader preflight first. If it fails, do not retry delegation.
+   - Read the plan file once, then work from the compact ledger below.
+   - Inspect project scripts once (\`package.json\`, \`Gemfile\`, or repo docs) and reuse exact commands from the plan or discovered scripts. Do not invent commands or workspace flags.
+   - Delegation is optional. When the plan already names exact files and commands, do not run a reader preflight. If delegation is needed, run one tiny cheap-reader preflight; if it fails, do not retry delegation.
 
 2. **Create a compact execution ledger**
-   Keep this in the conversation and update after each stage:
+   Keep this in the conversation and update it after each stage. Add one matrix row per stage and list only relevant paths or commands:
    \`\`\`md
    Current state:
    - Stage:
@@ -121,19 +121,24 @@ Important Sheva orchestration rule:
    - Tests passing:
    - Reviewer findings:
    - Next step:
+
+   | Stage | Inspect | Edit | Create | Test |
+   | --- | --- | --- | --- | --- |
+   | ... | ... | ... | ... | ... |
    \`\`\`
 
-3. **Read narrowly**
-   - Prefer codebase-memory, \`rg\`, \`find\`, and \`git diff\` before \`read\`.
-   - Read only exact line ranges needed for the current stage.
-   - Do not read large generic docs or full skill files unless they directly govern the edit.
+3. **Read and batch narrowly**
+   - Prefer codebase-memory, \`rg\`, \`find\`, and \`git diff\` before \`read\`; read only exact ranges needed.
+   - Inspect related files together with parallel tool calls when safe.
+   - Consolidate every currently known change to one file into one edit call, and edit independent files in the same assistant turn when safe.
+   - Avoid turns used only for routine progress commentary.
+   - Stop batching and work sequentially if requirements are ambiguous, edits or tasks overlap, a security-sensitive decision appears, or any test fails. These conditions take precedence over reducing turns.
 
 4. **Delegate bounded, file-disjoint work**
-   - Delegation is optional. Do not run a mandatory preflight agent when the plan already identifies exact files and commands.
-   - Use at most two direct, file-disjoint subagents for scoped implementation, search summaries, boilerplate, or focused test fixes.
+   - Use at most two direct subagents only for safe, file-disjoint implementation, search summaries, boilerplate, or focused test fixes.
    - Every delegated prompt must say: "Do not delegate or call another agent; use at most 8 tool calls."
    - Keep architecture, data modelling, security-sensitive choices, and final judgement in the primary agent.
-   - Each subagent task must include: owned files, forbidden files, focused tests to run, "do not commit", and this return contract:
+   - Each subagent task must include owned files, forbidden files, focused tests, "do not commit", and this return contract:
      \`\`\`md
      Changed files:
      Tests run:
@@ -142,26 +147,25 @@ Important Sheva orchestration rule:
      \`\`\`
 
 5. **Implement in DAG order**
-   - Follow dependency order from the plan.
-   - Prefer stages: backend/data -> preferences/config -> frontend plumbing -> UI -> review hardening.
+   - Follow the plan's dependency order; prefer backend/data -> preferences/config -> frontend plumbing -> UI -> review hardening.
+   - Finish a coherent dependency stage before focused verification.
    - Make minimal, readable changes. Business logic changes must include focused tests in the same stage.
-   - Parallelize only when two tasks are genuinely file-disjoint; parallelism reduces latency, not token usage.
+   - Parallelize only safe, file-disjoint work; parallelism reduces latency, not token usage.
 
 6. **Verify quietly**
-   - Run focused tests first.
+   - Run focused tests first, combining compatible focused tests into one command.
    - Use \`pi-quiet-run\` for noisy commands, for example:
      \`\`\`bash
      pi-quiet-run --tail 120 -- npm run test:only -- path/to/test.ts
      pi-quiet-run --tail 160 -- npm test
      \`\`\`
-   - If a quiet run fails, rerun only the failed focused command with enough output to diagnose.
-   - Run full gates once near the end unless risk requires earlier.
+   - If a test fails, stop batching and rerun only the failed focused command with enough output to diagnose.
+   - Run one final repository gate near the end unless risk requires earlier verification.
 
 7. **Review by diff**
-   - Use at most one reviewer subagent, and only after implementation and focused tests pass.
-   - Ask it to review \`git diff\` / recent commits, not whole files.
-   - Limit reviewer scope to correctness, security/tenancy, performance, persistence races, and test coverage.
-   - Fix blockers before final commit.
+   - Use at most one reviewer subagent, only after implementation and focused tests pass.
+   - Ask it to review \`git diff\` / recent commits, not whole files, for correctness, security/tenancy, performance, persistence races, and test coverage.
+   - Fix blockers before the final commit.
 
 8. **Commit atomically**
    - Commit each coherent stage separately.
@@ -174,7 +178,8 @@ Report only:
 - tests/gates run and result;
 - notable risks or follow-up, if any;
 - changed files summary;
-- confirm that PR/Copilot/comment follow-up was left for Sheva.`;
+- a future representative Sheva run as the next step for manually comparing turn count; defer telemetry unless manual comparison is insufficient;
+- confirmation that PR/Copilot/comment follow-up was left for Sheva.`;
 }
 
 export function createPrPrompt(): string {
