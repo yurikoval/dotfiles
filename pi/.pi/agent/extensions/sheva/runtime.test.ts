@@ -55,6 +55,17 @@ describe("reasoning policy", () => {
 		const escalated = escalateReasoningPolicy(reasoningPolicyForStep("implementation"), "unclear invariant");
 		expect(escalateReasoningPolicy(escalated, "later mechanical edit")).toBe(escalated);
 	});
+
+	test("supports an explicit high-reasoning escape hatch", () => {
+		const original = process.env.SHEVA_REASONING_LEVEL;
+		process.env.SHEVA_REASONING_LEVEL = "high";
+		try {
+			expect(reasoningPolicyForStep("pr")).toMatchObject({ level: "high", risk: "high", escalated: true });
+		} finally {
+			if (original === undefined) delete process.env.SHEVA_REASONING_LEVEL;
+			else process.env.SHEVA_REASONING_LEVEL = original;
+		}
+	});
 });
 
 describe("runAgentStep", () => {

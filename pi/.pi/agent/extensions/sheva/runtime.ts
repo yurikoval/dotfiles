@@ -82,7 +82,10 @@ export function reasoningPolicyForRisk(
 }
 
 export function reasoningPolicyForStep(step: ShevaStep, details = ""): ShevaReasoningPolicy {
-	return reasoningPolicyForRisk(STEP_RISKS[step], `${step} default`, details);
+	const policy = reasoningPolicyForRisk(STEP_RISKS[step], `${step} default`, details);
+	return process.env.SHEVA_REASONING_LEVEL === "high"
+		? escalateReasoningPolicy(policy, "SHEVA_REASONING_LEVEL=high")
+		: policy;
 }
 
 export function escalateReasoningPolicy(
@@ -101,7 +104,7 @@ Use fast reasoning for mechanical inspection, edits, tests, and Git operations. 
 }
 
 function reasoningRoutingEnabled(): boolean {
-	return process.env.SHEVA_REASONING_ROUTING === "1";
+	return process.env.SHEVA_REASONING_ROUTING === "1" || process.env.SHEVA_REASONING_LEVEL === "high";
 }
 
 function getThinkingLevel(pi: ExtensionAPI): ReturnType<ExtensionAPI["getThinkingLevel"]> | undefined {
