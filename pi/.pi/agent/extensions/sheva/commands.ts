@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import {
 	currentPrNumber,
@@ -23,6 +25,7 @@ import {
 	lastAssistantText,
 	notify,
 	preflightSheva,
+	reasoningPolicyForRisk,
 	reasoningPolicyForStep,
 	reportShevaMetricsSummary,
 	runAgentStep,
@@ -43,15 +46,27 @@ function parseBuildArgs(args: string): { planLocation: string; mergeAfter: boole
 
 type PolicyPrompt = string | ((policy: ShevaReasoningPolicy) => string);
 
+export async function implementationReasoningPolicy(
+	cwd: string,
+	planLocation: string,
+): Promise<ShevaReasoningPolicy> {
+	if (!planLocation) return reasoningPolicyForRisk(undefined, "implementation plan path missing");
+	try {
+		return reasoningPolicyForStep("implementation", await readFile(resolve(cwd, planLocation), "utf8"));
+	} catch {
+		return reasoningPolicyForRisk(undefined, "implementation plan could not be inspected");
+	}
+}
+
 async function runShevaStep(
 	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
 	label: string,
 	step: ShevaStep,
 	prompt: PolicyPrompt,
-	options?: { details?: string; expandPromptTemplates?: boolean },
+	options?: { details?: string; expandPromptTemplates?: boolean; policy?: ShevaReasoningPolicy },
 ): Promise<void> {
-	const policy = reasoningPolicyForStep(step, options?.details);
+	const policy = options?.policy ?? reasoningPolicyForStep(step, options?.details);
 	await runAgentStep(pi, ctx, label, typeof prompt === "string" ? prompt : prompt(policy), {
 		expandPromptTemplates: options?.expandPromptTemplates,
 		policy,
@@ -64,13 +79,14 @@ async function runBuildPipeline(
 	planLocation: string,
 	mergeAfter: boolean,
 ): Promise<void> {
+	const implementationPolicy = await implementationReasoningPolicy(ctx.cwd, planLocation);
 	await runShevaStep(
 		pi,
 		ctx,
 		"Sheva: implementing plan",
 		"implementation",
 		(policy) => runImplementationPrompt(planLocation, policy),
-		{ expandPromptTemplates: true },
+		{ expandPromptTemplates: true, policy: implementationPolicy },
 	);
 	if (stopForShevaDecisionWait(ctx)) return;
 	await runShevaStep(pi, ctx, "Sheva: creating pull request", "pr", createPrPrompt);

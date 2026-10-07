@@ -57,7 +57,7 @@ const STEP_RISKS: Record<ShevaStep, ShevaRiskClass> = {
 	"merge-repair": "ordinary",
 };
 const HIGH_RISK_HINT =
-	/\b(auth(?:entication|orization)?|tenan(?:t|cy)|secret|billing|credit|money|payment|subscription|webhook|schema|migration|destructive|concurren(?:cy|t)|idempoten(?:cy|t)|race|queue|lease|retry|production|deploy(?:ment)?|data loss|merge conflict|unexplained (?:failure|ci))\b/i;
+	/\b(auth(?:entication|orization)?|tenants?|tenancy|secrets?|billing|credits?|money|payments?|subscriptions?|webhooks?|schemas?|migrations?|destructive|concurren(?:cy|t)|idempoten(?:cy|t)|races?|queues?|leases?|retr(?:y|ies)|production|deploy(?:ment)?s?|data loss|merge conflicts?|unexplained (?:failure|ci))\b/i;
 const THINKING_LEVELS: Record<ShevaReasoningLevel, "low" | "medium" | "high"> = {
 	fast: "low",
 	standard: "medium",

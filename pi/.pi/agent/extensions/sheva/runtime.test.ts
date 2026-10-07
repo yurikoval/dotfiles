@@ -41,6 +41,10 @@ describe("reasoning policy", () => {
 			"concurrency race",
 			"destructive cleanup",
 			"production deployment",
+			"secrets and payments",
+			"subscriptions and webhooks",
+			"schemas and migrations",
+			"deployment retries",
 		]) {
 			expect(reasoningPolicyForRisk("routine", "mechanical default", detail).level).toBe("high");
 		}
