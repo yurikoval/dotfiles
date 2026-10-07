@@ -4,8 +4,10 @@ import {
 	ONE_MINUTE_MS,
 	SHEVA_PR_CHECKS_SCRIPT,
 	notify,
+	reasoningPolicyForStep,
 	runAgentStep,
 	sleep,
+	type ShevaReasoningPolicy,
 } from "./runtime";
 export type RepoInfo = {
 	owner: string;
@@ -191,6 +193,7 @@ export async function requestCopilotReview(
 	ctx: ExtensionCommandContext,
 	prNumber: string,
 	fallbackPrompt: string,
+	fallbackPolicy: ShevaReasoningPolicy = reasoningPolicyForStep("pr"),
 ): Promise<number> {
 	notify(ctx, `Sheva: requesting Copilot review for PR #${prNumber}`);
 	const requestedAt = Date.now() - 10_000;
@@ -202,7 +205,9 @@ export async function requestCopilotReview(
 			`Sheva: direct Copilot request failed; falling back to agent prompt (${result.stderr.trim() || result.stdout.trim()})`,
 			"warning",
 		);
-		await runAgentStep(pi, ctx, "Sheva: fallback /request-copilot-review step", fallbackPrompt);
+		await runAgentStep(pi, ctx, "Sheva: fallback /request-copilot-review step", fallbackPrompt, {
+			policy: fallbackPolicy,
+		});
 	}
 	return requestedAt;
 }

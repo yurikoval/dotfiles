@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import {
 	currentPrNumber,
@@ -23,10 +25,15 @@ import {
 	lastAssistantText,
 	notify,
 	preflightSheva,
+	reasoningPolicyForRisk,
+	reasoningPolicyForStep,
+	reportShevaMetricsSummary,
 	runAgentStep,
 	shevaNextCommand,
 	sleep,
 	stopForShevaDecisionWait,
+	type ShevaReasoningPolicy,
+	type ShevaStep,
 } from "./runtime";
 
 function parseBuildArgs(args: string): { planLocation: string; mergeAfter: boolean } {
@@ -37,25 +44,73 @@ function parseBuildArgs(args: string): { planLocation: string; mergeAfter: boole
 	return { planLocation: trimmed.slice("--merge".length).trim(), mergeAfter: true };
 }
 
+type PolicyPrompt = string | ((policy: ShevaReasoningPolicy) => string);
+
+export async function implementationReasoningPolicy(
+	cwd: string,
+	planLocation: string,
+): Promise<ShevaReasoningPolicy> {
+	if (!planLocation) return reasoningPolicyForRisk(undefined, "implementation plan path missing");
+	try {
+		return reasoningPolicyForStep("implementation", await readFile(resolve(cwd, planLocation), "utf8"));
+	} catch {
+		return reasoningPolicyForRisk(undefined, "implementation plan could not be inspected");
+	}
+}
+
+async function runShevaStep(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	label: string,
+	step: ShevaStep,
+	prompt: PolicyPrompt,
+	options?: { details?: string; expandPromptTemplates?: boolean; policy?: ShevaReasoningPolicy },
+): Promise<void> {
+	const policy = options?.policy ?? reasoningPolicyForStep(step, options?.details);
+	await runAgentStep(pi, ctx, label, typeof prompt === "string" ? prompt : prompt(policy), {
+		expandPromptTemplates: options?.expandPromptTemplates,
+		policy,
+	});
+}
+
 async function runBuildPipeline(
 	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
 	planLocation: string,
 	mergeAfter: boolean,
 ): Promise<void> {
-	await runAgentStep(pi, ctx, "Sheva: implementing plan", runImplementationPrompt(planLocation), {
-		expandPromptTemplates: true,
-	});
+	const implementationPolicy = await implementationReasoningPolicy(ctx.cwd, planLocation);
+	await runShevaStep(
+		pi,
+		ctx,
+		"Sheva: implementing plan",
+		"implementation",
+		(policy) => runImplementationPrompt(planLocation, policy),
+		{ expandPromptTemplates: true, policy: implementationPolicy },
+	);
 	if (stopForShevaDecisionWait(ctx)) return;
-	await runAgentStep(pi, ctx, "Sheva: creating pull request", createPrPrompt());
+	await runShevaStep(pi, ctx, "Sheva: creating pull request", "pr", createPrPrompt);
 	if (stopForShevaDecisionWait(ctx)) return;
 
 	const prNumber = await currentPrNumber(pi);
-	const requestedAt = await requestCopilotReview(pi, ctx, prNumber, requestCopilotPrompt(prNumber));
+	const copilotPolicy = reasoningPolicyForStep("pr");
+	const requestedAt = await requestCopilotReview(
+		pi,
+		ctx,
+		prNumber,
+		requestCopilotPrompt(prNumber, copilotPolicy),
+		copilotPolicy,
+	);
 	if (stopForShevaDecisionWait(ctx)) return;
 	await waitForCopilotReview(pi, ctx, prNumber, requestedAt);
 
-	await runAgentStep(pi, ctx, "Sheva: addressing PR comments", addressPrCommentsPrompt(prNumber));
+	await runShevaStep(
+		pi,
+		ctx,
+		"Sheva: addressing PR comments",
+		"comments",
+		(policy) => addressPrCommentsPrompt(prNumber, policy),
+	);
 	if (stopForShevaDecisionWait(ctx) || !mergeAfter) return;
 
 	let report: MergeCheckReport | undefined;
@@ -65,11 +120,12 @@ async function runBuildPipeline(
 		if (report.ok) break;
 
 		if (!report.comments.pass) {
-			await runAgentStep(
+			await runShevaStep(
 				pi,
 				ctx,
 				"Sheva: addressing unresolved PR comments before merge",
-				addressPrCommentsPrompt(prNumber),
+				"comments",
+				(policy) => addressPrCommentsPrompt(prNumber, policy),
 			);
 			if (stopForShevaDecisionWait(ctx)) return;
 			continue;
@@ -81,7 +137,15 @@ async function runBuildPipeline(
 			continue;
 		}
 
-		await runAgentStep(pi, ctx, "Sheva: fixing merge preflight blockers", mergeRepairPrompt(report));
+		const failedReport = report;
+		await runShevaStep(
+			pi,
+			ctx,
+			"Sheva: fixing merge preflight blockers",
+			"merge-repair",
+			(policy) => mergeRepairPrompt(failedReport, policy),
+			{ details: mergeCheckSummary(failedReport) },
+		);
 		if (stopForShevaDecisionWait(ctx)) return;
 	}
 
@@ -107,26 +171,41 @@ export default function sheva(pi: ExtensionAPI) {
 
 			try {
 				if (!ctx.isIdle()) await ctx.waitForIdle();
-				await runAgentStep(pi, ctx, "Sheva: creating plan", planPrompt(args.trim()));
+				await runShevaStep(
+					pi,
+					ctx,
+					"Sheva: creating plan",
+					"plan",
+					(policy) => planPrompt(args.trim(), "initial", policy),
+					{ details: args.trim() },
+				);
 				if (stopForShevaDecisionWait(ctx)) return;
 
 				const nextCommand = shevaNextCommand(lastAssistantText(ctx));
 				if (nextCommand) {
-					await runAgentStep(pi, ctx, `Sheva: running nested ${nextCommand.split(/\s+/, 1)[0]}`, nextCommand, {
-						expandPromptTemplates: true,
-					});
+					await runShevaStep(
+						pi,
+						ctx,
+						`Sheva: running nested ${nextCommand.split(/\s+/, 1)[0]}`,
+						"decision",
+						nextCommand,
+						{ expandPromptTemplates: true },
+					);
 					if (stopForShevaDecisionWait(ctx)) return;
-					await runAgentStep(
+					await runShevaStep(
 						pi,
 						ctx,
 						"Sheva: writing plan after grill workflow",
-						planPrompt(args.trim(), "after-grill"),
+						"plan",
+						(policy) => planPrompt(args.trim(), "after-grill", policy),
+						{ details: args.trim() },
 					);
 					if (stopForShevaDecisionWait(ctx)) return;
 				}
 			} catch (error) {
 				ctx.ui.notify(`Sheva plan failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 			} finally {
+				reportShevaMetricsSummary(ctx);
 				ctx.ui.setStatus("sheva", undefined);
 			}
 		},
@@ -143,6 +222,7 @@ export default function sheva(pi: ExtensionAPI) {
 			} catch (error) {
 				ctx.ui.notify(`Sheva build failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 			} finally {
+				reportShevaMetricsSummary(ctx);
 				ctx.ui.setStatus("sheva", undefined);
 			}
 		},
@@ -161,21 +241,35 @@ export default function sheva(pi: ExtensionAPI) {
 			try {
 				if (!ctx.isIdle()) await ctx.waitForIdle();
 
-				await runAgentStep(pi, ctx, "Sheva: creating plan", planPrompt(args.trim()));
+				await runShevaStep(
+					pi,
+					ctx,
+					"Sheva: creating plan",
+					"plan",
+					(policy) => planPrompt(args.trim(), "initial", policy),
+					{ details: args.trim() },
+				);
 				if (stopForShevaDecisionWait(ctx)) return;
 				let planLocation = extractPlanLocation(lastAssistantText(ctx));
 
 				const nextCommand = shevaNextCommand(lastAssistantText(ctx));
 				if (nextCommand) {
-					await runAgentStep(pi, ctx, `Sheva: running nested ${nextCommand.split(/\s+/, 1)[0]}`, nextCommand, {
-						expandPromptTemplates: true,
-					});
+					await runShevaStep(
+						pi,
+						ctx,
+						`Sheva: running nested ${nextCommand.split(/\s+/, 1)[0]}`,
+						"decision",
+						nextCommand,
+						{ expandPromptTemplates: true },
+					);
 					if (stopForShevaDecisionWait(ctx)) return;
-					await runAgentStep(
+					await runShevaStep(
 						pi,
 						ctx,
 						"Sheva: writing plan after grill workflow",
-						planPrompt(args.trim(), "after-grill"),
+						"plan",
+						(policy) => planPrompt(args.trim(), "after-grill", policy),
+						{ details: args.trim() },
 					);
 					if (stopForShevaDecisionWait(ctx)) return;
 					planLocation = extractPlanLocation(lastAssistantText(ctx));
@@ -185,6 +279,7 @@ export default function sheva(pi: ExtensionAPI) {
 					throw new Error("Sheva could not detect the plan path; refusing to carry the full planning context into implementation.");
 				}
 
+				reportShevaMetricsSummary(ctx);
 				const parentSession = ctx.sessionManager.getSessionFile();
 				const switched = await ctx.newSession({
 					parentSession,
@@ -200,7 +295,10 @@ export default function sheva(pi: ExtensionAPI) {
 			} catch (error) {
 				ctx.ui.notify(`Sheva run failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 			} finally {
-				if (!sessionReplaced) ctx.ui.setStatus("sheva", undefined);
+				if (!sessionReplaced) {
+					reportShevaMetricsSummary(ctx);
+					ctx.ui.setStatus("sheva", undefined);
+				}
 			}
 		},
 	});
@@ -223,11 +321,12 @@ export default function sheva(pi: ExtensionAPI) {
 
 					const prNumber = String(report.pr.number);
 					if (!report.comments.pass) {
-						await runAgentStep(
+						await runShevaStep(
 							pi,
 							ctx,
 							"Sheva: addressing unresolved PR comments before merge",
-							addressPrCommentsPrompt(prNumber),
+							"comments",
+							(policy) => addressPrCommentsPrompt(prNumber, policy),
 						);
 						if (stopForShevaDecisionWait(ctx)) return;
 						continue;
@@ -239,11 +338,14 @@ export default function sheva(pi: ExtensionAPI) {
 						continue;
 					}
 
-					await runAgentStep(
+					const failedReport = report;
+					await runShevaStep(
 						pi,
 						ctx,
 						"Sheva: fixing merge preflight blockers",
-						mergeRepairPrompt(report),
+						"merge-repair",
+						(policy) => mergeRepairPrompt(failedReport, policy),
+						{ details: mergeCheckSummary(failedReport) },
 					);
 					if (stopForShevaDecisionWait(ctx)) return;
 				}
@@ -260,6 +362,7 @@ export default function sheva(pi: ExtensionAPI) {
 			} catch (error) {
 				ctx.ui.notify(`Sheva merge failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 			} finally {
+				reportShevaMetricsSummary(ctx);
 				ctx.ui.setStatus("sheva", undefined);
 			}
 		},

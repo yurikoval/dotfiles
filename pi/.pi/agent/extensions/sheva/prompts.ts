@@ -1,8 +1,17 @@
 import type { MergeCheckReport } from "./github";
 import { mergeCheckSummary } from "./github";
-import { SHEVA_PR_CHECKS_SCRIPT } from "./runtime";
+import {
+	formatReasoningBudget,
+	reasoningPolicyForStep,
+	SHEVA_PR_CHECKS_SCRIPT,
+	type ShevaReasoningPolicy,
+} from "./runtime";
 
-export function planPrompt(description: string, mode: "initial" | "after-grill" = "initial"): string {
+export function planPrompt(
+	description: string,
+	mode: "initial" | "after-grill" = "initial",
+	policy = reasoningPolicyForStep("plan", description),
+): string {
 	const grillPolicy =
 		mode === "initial"
 			? `
@@ -21,6 +30,8 @@ Nested command policy for Sheva:
 - End with exactly: SHEVA_NEXT_COMMAND: none`;
 
 	return `Follow the provided \`plan_description\` and \`plan_requirements\` to draft a detailed but token-lean implementation plan.
+
+${formatReasoningBudget(policy)}
 ${grillPolicy}
 
 ## Workflow
@@ -89,12 +100,17 @@ ${description}
 </plan_description>`;
 }
 
-export function runImplementationPrompt(planLocation: string): string {
+export function runImplementationPrompt(
+	planLocation: string,
+	policy = reasoningPolicyForStep("implementation"),
+): string {
 	return `/skill:ponytail full
 
 Implement the plan token-efficiently, with high quality and atomic commits.
 
 Plan location: ${planLocation || "not provided; infer from the current conversation or ask only if necessary"}
+
+${formatReasoningBudget(policy)}
 
 Important Sheva orchestration rule:
 - Implement, verify, review, and commit the plan only.
@@ -182,8 +198,10 @@ Report only:
 - confirmation that PR/Copilot/comment follow-up was left for Sheva.`;
 }
 
-export function createPrPrompt(): string {
+export function createPrPrompt(policy = reasoningPolicyForStep("pr")): string {
 	return `Create a GitHub Pull Request now. This is Sheva's inlined /create-pr nested step.
+
+${formatReasoningBudget(policy)}
 
 1. Analyse and summarise changes made on the current branch for a GitHub Pull Request.
 2. Do not check with the user if the summary is correct.
@@ -192,8 +210,10 @@ export function createPrPrompt(): string {
 5. Report the PR number and URL.`;
 }
 
-export function requestCopilotPrompt(prNumber: string): string {
+export function requestCopilotPrompt(prNumber: string, policy = reasoningPolicyForStep("pr")): string {
 	return `Request code review from GitHub Copilot now. This is Sheva's inlined /request-copilot-review nested step.
+
+${formatReasoningBudget(policy)}
 
 Use this exact command:
 \`gh pr edit ${prNumber} --add-reviewer @copilot\`
@@ -201,8 +221,13 @@ Use this exact command:
 Do not request review from \`@me\`.`;
 }
 
-export function addressPrCommentsPrompt(prNumber: string): string {
+export function addressPrCommentsPrompt(
+	prNumber: string,
+	policy = reasoningPolicyForStep("comments"),
+): string {
 	return `Address unresolved GitHub PR review comments for PR #${prNumber}.
+
+${formatReasoningBudget(policy)}
 
 Use the \`address-pr-comments\` skill.
 
@@ -221,8 +246,13 @@ Workflow constraints:
 Report groups, commits, resolved threads, skipped threads, and verification.`;
 }
 
-export function mergeRepairPrompt(report: MergeCheckReport): string {
+export function mergeRepairPrompt(
+	report: MergeCheckReport,
+	policy: ShevaReasoningPolicy = reasoningPolicyForStep("merge-repair", mergeCheckSummary(report)),
+): string {
 	return `Sheva merge preflight failed for PR #${report.pr.number}.
+
+${formatReasoningBudget(policy)}
 
 The check script is \`${SHEVA_PR_CHECKS_SCRIPT}\` and produced this report:
 
