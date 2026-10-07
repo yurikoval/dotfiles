@@ -1,0 +1,191 @@
+#!/bin/zsh
+
+set -u
+
+apply=false
+assume_yes=false
+
+usage() {
+  cat <<'EOF'
+usage: git sweep [--apply] [--yes]
+
+Fetch every branch from origin, then remove local branches that are either:
+  - merged into origin's default branch, or
+  - free of commits not present on their origin branch.
+
+Dirty worktrees, the main worktree, and the current worktree are never removed.
+The default mode is a dry run. Use --apply to clean up and --yes to skip the
+confirmation prompt. Remote branches are never deleted.
+EOF
+}
+
+while (( $# )); do
+  case "$1" in
+    --apply) apply=true ;;
+    -y|--yes) apply=true; assume_yes=true ;;
+    -h|--help) usage; exit 0 ;;
+    *) print -u2 -r -- "git sweep: unknown option: $1"; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+repo=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  print -u2 -- "git sweep: not inside a Git repository"
+  exit 1
+}
+
+git remote get-url origin >/dev/null 2>&1 || {
+  print -u2 -- "git sweep: this repository has no origin remote"
+  exit 1
+}
+
+print -- "Fetching origin..."
+git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*' || exit $?
+
+default_ref=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null || true)
+if [[ -z "$default_ref" ]]; then
+  default_branch=$(git ls-remote --symref origin HEAD 2>/dev/null |
+    awk '$1 == "ref:" { sub("refs/heads/", "", $2); print $2; exit }')
+  default_ref="refs/remotes/origin/$default_branch"
+fi
+
+if [[ -z "${default_branch:-}" ]]; then
+  default_branch=${default_ref#refs/remotes/origin/}
+fi
+
+if [[ -z "$default_branch" ]] || ! git show-ref --verify --quiet "$default_ref"; then
+  print -u2 -- "git sweep: could not determine origin's default branch"
+  exit 1
+fi
+
+common=$(git rev-parse --path-format=absolute --git-common-dir) || exit 1
+if [[ "${common:t}" == ".git" ]]; then
+  main_worktree="${common:h}"
+else
+  main_worktree="$repo"
+fi
+
+typeset -A worktrees
+worktree_path=""
+while IFS= read -r line; do
+  case "$line" in
+    'worktree '*) worktree_path=${line#worktree } ;;
+    'branch refs/heads/'*) worktrees[${line#branch refs/heads/}]=$worktree_path ;;
+  esac
+done < <(git worktree list --porcelain)
+
+safe_reason() {
+  local branch=$1 upstream local_only
+
+  if git merge-base --is-ancestor "refs/heads/$branch" "$default_ref" 2>/dev/null; then
+    print -r -- "merged into origin/$default_branch"
+    return 0
+  fi
+
+  upstream=$(git for-each-ref --format='%(upstream)' "refs/heads/$branch")
+  if [[ "$upstream" != refs/remotes/origin/* ]]; then
+    upstream="refs/remotes/origin/$branch"
+  fi
+  git show-ref --verify --quiet "$upstream" || return 1
+
+  local_only=$(git rev-list --count "$upstream..refs/heads/$branch") || return 1
+  if (( local_only == 0 )); then
+    print -r -- "no local-only commits relative to ${upstream#refs/remotes/}"
+    return 0
+  fi
+  return 1
+}
+
+typeset -a candidates candidate_tips
+for ref in ${(f)"$(git for-each-ref --format='%(refname)' refs/heads)"}; do
+  branch=${ref#refs/heads/}
+  wt_path=${worktrees[$branch]:-}
+
+  if [[ "$branch" == "$default_branch" ]]; then
+    print -r -- "keep   $branch (origin's default branch)"
+    continue
+  fi
+
+  reason=$(safe_reason "$branch") || {
+    print -r -- "keep   $branch (has local commits not merged or preserved on origin)"
+    continue
+  }
+
+  if [[ -n "$wt_path" && ( "$wt_path" == "$repo" || "$wt_path" == "$main_worktree" ) ]]; then
+    print -r -- "keep   $branch (checked out in protected worktree $wt_path)"
+    continue
+  fi
+
+  if [[ -n "$wt_path" ]]; then
+    wt_status=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null) || {
+      print -r -- "keep   $branch (could not inspect worktree $wt_path)"
+      continue
+    }
+    if [[ -n "$wt_status" ]]; then
+      print -r -- "keep   $branch (worktree $wt_path has changes)"
+      continue
+    fi
+  fi
+
+  candidates+=("$branch")
+  candidate_tips+=("$(git rev-parse "refs/heads/$branch")")
+  print -r -- "remove $branch ($reason)${wt_path:+; worktree $wt_path}"
+done
+
+count=${#candidates}
+if (( count == 0 )); then
+  print -- "Nothing to remove."
+  exit 0
+fi
+
+if [[ "$apply" != true ]]; then
+  print -- "Dry run: $count branch(es) can be removed. Re-run with --apply."
+  exit 0
+fi
+
+if [[ "$assume_yes" != true ]]; then
+  if [[ ! -t 0 ]]; then
+    print -u2 -- "git sweep: confirmation requires a terminal; use --yes"
+    exit 2
+  fi
+  read -q "reply?Remove $count branch(es) and their clean linked worktrees? [y/N] "
+  print
+  [[ "$reply" == [yY] ]] || exit 0
+fi
+
+removed=0
+for (( i = 1; i <= count; i++ )); do
+  branch=${candidates[$i]}
+  expected_tip=${candidate_tips[$i]}
+  wt_path=${worktrees[$branch]:-}
+
+  if [[ "$(git rev-parse -q --verify "refs/heads/$branch" 2>/dev/null)" != "$expected_tip" ]]; then
+    print -u2 -r -- "skip   $branch (branch changed since analysis)"
+    continue
+  fi
+  if ! safe_reason "$branch" >/dev/null; then
+    print -u2 -r -- "skip   $branch (no longer safe to remove)"
+    continue
+  fi
+  if [[ -n "$wt_path" ]]; then
+    if [[ "$(git -C "$wt_path" symbolic-ref --quiet --short HEAD 2>/dev/null)" != "$branch" ]]; then
+      print -u2 -r -- "skip   $branch (worktree changed branches)"
+      continue
+    fi
+    wt_status=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null) || {
+      print -u2 -r -- "skip   $branch (could not re-inspect worktree)"
+      continue
+    }
+    if [[ -n "$wt_status" ]]; then
+      print -u2 -r -- "skip   $branch (worktree gained changes)"
+      continue
+    fi
+    git worktree remove "$wt_path" || {
+      print -u2 -r -- "skip   $branch (could not remove worktree $wt_path)"
+      continue
+    }
+  fi
+  git branch -D -- "$branch" && (( removed++ ))
+done
+
+print -- "Removed $removed of $count candidate branch(es)."
