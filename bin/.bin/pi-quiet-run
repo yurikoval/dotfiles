@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Run a command while keeping Pi context small.
+# Usage: pi-quiet-run [--tail N] -- <command> [args...]
+# Prints bounded, filtered output and exits with the wrapped command status.
+set -u
+
+TAIL_LINES=160
+if [[ "${1:-}" == "--tail" ]]; then
+  TAIL_LINES="${2:-160}"
+  shift 2
+fi
+if [[ "${1:-}" == "--" ]]; then
+  shift
+fi
+if [[ $# -eq 0 ]]; then
+  echo "usage: pi-quiet-run [--tail N] -- <command> [args...]" >&2
+  exit 64
+fi
+
+log_file="$(mktemp -t pi-quiet-run.XXXXXX.log)"
+filter_output() {
+  # Drop known high-volume, low-signal telemetry lines from local test runs.
+  sed \
+    -e '/^{"metric":/d' \
+    -e '/^[[:space:]]*$/d'
+}
+
+"$@" >"$log_file" 2>&1
+status=$?
+
+if [[ $status -eq 0 ]]; then
+  echo "pi-quiet-run: PASS ($*)"
+  filter_output <"$log_file" | tail -n "$TAIL_LINES"
+else
+  echo "pi-quiet-run: FAIL exit=$status ($*)"
+  filter_output <"$log_file" | tail -n "$TAIL_LINES"
+fi
+
+echo "pi-quiet-run: full output saved at $log_file"
+exit "$status"
