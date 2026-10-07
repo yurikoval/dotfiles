@@ -22,6 +22,7 @@ import {
 	extractPlanLocation,
 	lastAssistantText,
 	notify,
+	preflightSheva,
 	runAgentStep,
 	shevaNextCommand,
 	sleep,
@@ -102,6 +103,7 @@ export default function sheva(pi: ExtensionAPI) {
 				ctx.ui.notify("Usage: /sheva-plan <plan description>", "warning");
 				return;
 			}
+			if (!(await preflightSheva(pi, ctx))) return;
 
 			try {
 				if (!ctx.isIdle()) await ctx.waitForIdle();
@@ -134,6 +136,7 @@ export default function sheva(pi: ExtensionAPI) {
 		description: "Implement a plan, then actually run PR, Copilot review, and address-comments follow-ups",
 		handler: async (args, ctx) => {
 			try {
+				if (!(await preflightSheva(pi, ctx))) return;
 				if (!ctx.isIdle()) await ctx.waitForIdle();
 				const { planLocation, mergeAfter } = parseBuildArgs(args);
 				await runBuildPipeline(pi, ctx, planLocation, mergeAfter);
@@ -152,6 +155,7 @@ export default function sheva(pi: ExtensionAPI) {
 				ctx.ui.notify("Usage: /sheva-run <plan description>", "warning");
 				return;
 			}
+			if (!(await preflightSheva(pi, ctx))) return;
 
 			let sessionReplaced = false;
 			try {
@@ -208,6 +212,7 @@ export default function sheva(pi: ExtensionAPI) {
 			let report: MergeCheckReport | undefined;
 
 			try {
+				if (!(await preflightSheva(pi, ctx))) return;
 				if (!ctx.isIdle()) await ctx.waitForIdle();
 
 				for (let attempt = 1; attempt <= 10; attempt += 1) {
