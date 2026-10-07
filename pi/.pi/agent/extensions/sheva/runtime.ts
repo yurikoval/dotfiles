@@ -1,3 +1,5 @@
+import { constants } from "node:fs";
+import { access } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
@@ -7,6 +9,92 @@ export const COPILOT_MAX_WAIT_MS = 10 * ONE_MINUTE_MS;
 const DECISION_WAIT_MARKER = "SHEVA_WAITING_FOR_DECISIONS";
 const DECISION_ID_RE = /^(?:cm|cmt)_[A-Za-z0-9]+$/;
 export const SHEVA_PR_CHECKS_SCRIPT = join(homedir(), ".pi", "agent", "bin", "sheva-pr-checks");
+
+export type ShevaDependency = {
+	name: string;
+	check: (pi: ExtensionAPI) => Promise<string | undefined>;
+};
+
+async function execRequirement(
+	pi: ExtensionAPI,
+	command: string,
+	args: string[],
+	failureMessage: string,
+): Promise<string | undefined> {
+	try {
+		const result = await pi.exec(command, args, { timeout: 15_000 });
+		if (result.code === 0) return undefined;
+		const detail = result.stderr.trim() || result.stdout.trim();
+		return `${failureMessage}${detail ? ` (${detail})` : ""}`;
+	} catch (error) {
+		return `${failureMessage} (${error instanceof Error ? error.message : String(error)})`;
+	}
+}
+
+export const SHEVA_DEPENDENCIES: readonly ShevaDependency[] = [
+	{
+		name: "Git",
+		check: async (pi) =>
+			(await execRequirement(pi, "git", ["--version"], "install Git and make it available on PATH")) ??
+			(await execRequirement(pi, "git", ["rev-parse", "--is-inside-work-tree"], "run Sheva inside a Git repository")) ??
+			(await execRequirement(pi, "git", ["var", "GIT_AUTHOR_IDENT"], "configure Git user.name and user.email")),
+	},
+	{
+		name: "GitHub CLI",
+		check: async (pi) =>
+			(await execRequirement(pi, "gh", ["--version"], "install gh and make it available on PATH")) ??
+			(await execRequirement(pi, "gh", ["auth", "status"], "authenticate gh with `gh auth login`")) ??
+			(await execRequirement(
+				pi,
+				"gh",
+				["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"],
+				"configure a GitHub remote that gh can resolve",
+			)),
+	},
+	{
+		name: "jq",
+		check: (pi) => execRequirement(pi, "jq", ["--version"], "install jq and make it available on PATH"),
+	},
+	{
+		name: "merge-check script",
+		check: async () => {
+			try {
+				await access(SHEVA_PR_CHECKS_SCRIPT, constants.X_OK);
+				return undefined;
+			} catch {
+				return `install an executable sheva-pr-checks at ${SHEVA_PR_CHECKS_SCRIPT}`;
+			}
+		},
+	},
+];
+
+export async function checkShevaDependencies(
+	pi: ExtensionAPI,
+	dependencies: readonly ShevaDependency[] = SHEVA_DEPENDENCIES,
+): Promise<string[]> {
+	const results = await Promise.all(
+		dependencies.map(async (dependency) => {
+			try {
+				const failure = await dependency.check(pi);
+				return failure ? `${dependency.name}: ${failure}` : undefined;
+			} catch (error) {
+				return `${dependency.name}: ${error instanceof Error ? error.message : String(error)}`;
+			}
+		}),
+	);
+	return results.filter((result): result is string => Boolean(result));
+}
+
+export async function preflightSheva(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	dependencies: readonly ShevaDependency[] = SHEVA_DEPENDENCIES,
+): Promise<boolean> {
+	const failures = await checkShevaDependencies(pi, dependencies);
+	if (failures.length === 0) return true;
+	ctx.ui.notify(`Sheva pre-check failed:\n- ${failures.join("\n- ")}`, "error");
+	return false;
+}
 
 export function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
