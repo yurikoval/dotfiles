@@ -1,7 +1,7 @@
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 
 export const ONE_MINUTE_MS = 60_000;
@@ -14,6 +14,42 @@ export type ShevaDependency = {
 	name: string;
 	check: (pi: ExtensionAPI) => Promise<string | undefined>;
 };
+
+export const SHEVA_PROMPT_SKILLS = [
+	"ponytail",
+	"address-pr-comments",
+	"grill-me-once",
+	"frontend-design",
+] as const;
+export const SHEVA_PROMPT_TOOLS = [
+	"bash",
+	"read",
+	"edit",
+	"write",
+	"index_repository",
+	"index_status",
+	"search_graph",
+	"subagent",
+	"questionnaire",
+] as const;
+export const SHEVA_PROMPT_COMMANDS = ["find", "ls", "rg", "pi-quiet-run"] as const;
+
+async function executableOnPath(command: string): Promise<boolean> {
+	for (const directory of (process.env.PATH ?? "").split(delimiter)) {
+		try {
+			await access(join(directory, command), constants.X_OK);
+			return true;
+		} catch {
+			// Keep looking through PATH.
+		}
+	}
+	return false;
+}
+
+async function missingExecutables(commands: readonly string[]): Promise<string[]> {
+	const checks = await Promise.all(commands.map(async (command) => [command, await executableOnPath(command)] as const));
+	return checks.filter(([, found]) => !found).map(([command]) => command);
+}
 
 async function execRequirement(
 	pi: ExtensionAPI,
@@ -30,6 +66,49 @@ async function execRequirement(
 		return `${failureMessage} (${error instanceof Error ? error.message : String(error)})`;
 	}
 }
+
+export const SHEVA_PROMPT_DEPENDENCIES: readonly ShevaDependency[] = [
+	{
+		name: "Prompt skills",
+		check: async (pi) => {
+			const loaded = new Set(
+				pi.getCommands()
+					.filter((command) => command.source === "skill")
+					.map((command) => command.name.replace(/^skill:/, "")),
+			);
+			const missing = SHEVA_PROMPT_SKILLS.filter((skill) => !loaded.has(skill));
+			return missing.length > 0 ? `load required skills: ${missing.join(", ")}` : undefined;
+		},
+	},
+	{
+		name: "Prompt extensions/tools",
+		check: async (pi) => {
+			const configured = new Set(pi.getAllTools().map((tool) => tool.name));
+			const active = new Set(pi.getActiveTools());
+			const missing = SHEVA_PROMPT_TOOLS.filter((tool) => !configured.has(tool));
+			const inactive = SHEVA_PROMPT_TOOLS.filter((tool) => configured.has(tool) && !active.has(tool));
+			const failures = [
+				missing.length > 0 ? `install/load extensions providing: ${missing.join(", ")}` : "",
+				inactive.length > 0 ? `enable tools: ${inactive.join(", ")}` : "",
+			].filter(Boolean);
+			return failures.length > 0 ? failures.join("; ") : undefined;
+		},
+	},
+	{
+		name: "Prompt commands",
+		check: async () => {
+			const missing = await missingExecutables(SHEVA_PROMPT_COMMANDS);
+			return missing.length > 0 ? `install commands on PATH: ${missing.join(", ")}` : undefined;
+		},
+	},
+	{
+		name: "Track CLI",
+		check: async () => {
+			if (!process.env.SHEVA_TRACK_ITEM_ID || (await executableOnPath("track-cli"))) return undefined;
+			return "install track-cli on PATH when SHEVA_TRACK_ITEM_ID is set";
+		},
+	},
+];
 
 export const SHEVA_DEPENDENCIES: readonly ShevaDependency[] = [
 	{
@@ -66,6 +145,7 @@ export const SHEVA_DEPENDENCIES: readonly ShevaDependency[] = [
 			}
 		},
 	},
+	...SHEVA_PROMPT_DEPENDENCIES,
 ];
 
 export async function checkShevaDependencies(
